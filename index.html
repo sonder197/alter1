@@ -242,6 +242,14 @@
       <div class="stat-chip"><div class="num" id="stat-due">0</div><div class="lbl">Đến hạn ôn</div></div>
     </div>
 
+    <div id="account-panel" style="margin:-6px 0 16px; padding:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px;">
+      <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;">Tài khoản</div>
+      <div id="account-email" style="font-size:13px; color:var(--text-muted); margin-bottom:9px;">Chưa đăng nhập</div>
+      <button class="btn btn-primary" id="login-btn" style="width:100%;">Đăng nhập Google</button>
+      <button class="btn btn-ghost" id="logout-btn" style="width:100%; margin-top:7px; display:none;">Đăng xuất</button>
+      <div id="sync-status" style="font-size:11px; color:var(--text-dim); margin-top:8px;">Chưa đồng bộ</div>
+    </div>
+
     <button class="nav-item active" data-view="overview"><span class="dot"></span><span>Tổng quan</span></button>
 
     <div class="nav-group-label">Module 30.1 — Nền tảng</div>
@@ -605,7 +613,68 @@
   </main>
 </div>
 
-<script>
+<script type="module">
+/* =========================================================
+   FIREBASE REALTIME DATABASE
+   ========================================================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "alter1-f1cf5.firebaseapp.com",
+  projectId: "alter1-f1cf5",
+  databaseURL: "https://alter1-f1cf5-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
+const auth = getAuth(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+const LOCAL_CACHE_KEY = "alter1-cfa-reading30-state";
+let currentUser = null;
+
+function firebaseStateRef(){
+  if(!currentUser) return null;
+  return ref(database, `users/${currentUser.uid}/commoditiesStudy`);
+}
+
+function setSyncStatus(message, ok=true){
+  const el = document.getElementById("sync-status");
+  if(!el) return;
+  el.textContent = message;
+  el.style.color = ok ? "var(--green-soft)" : "var(--rust-soft)";
+}
+
+function cacheState(){
+  try{
+    localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.warn("Không ghi được cache cục bộ:", e);
+  }
+}
+
+function loadCachedState(){
+  try{
+    const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+    if(!raw) return false;
+    const saved = JSON.parse(raw);
+    state.cardProgress = saved.cardProgress || {};
+    state.quizHistory = Array.isArray(saved.quizHistory) ? saved.quizHistory : [];
+    return true;
+  }catch(e){
+    console.warn("Cache cục bộ không hợp lệ:", e);
+    return false;
+  }
+}
+
 /* =========================================================
    DATA — FLASHCARDS
    ========================================================= */
@@ -731,23 +800,58 @@ const BOX_INTERVAL_DAYS = [0,0,1,3,7,14];
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 async function loadState(){
+  const hadCache = loadCachedState();
+
+  if(!currentUser){
+    setSyncStatus(hadCache ? "Chưa đăng nhập · dùng cache" : "Chưa đăng nhập", false);
+    return;
+  }
+
+  setSyncStatus(hadCache ? "Đang kiểm tra Firebase…" : "Đang đồng bộ…");
+
   try{
-    if(window.storage){
-      const res = await window.storage.get('commodities-study-state', false);
-      if(res && res.value){
-        const saved = JSON.parse(res.value);
-        state.cardProgress = saved.cardProgress || {};
-        state.quizHistory = saved.quizHistory || [];
-      }
+    const snapshot = await get(firebaseStateRef());
+
+    if(snapshot.exists()){
+      const saved = snapshot.val() || {};
+      state.cardProgress = saved.cardProgress || {};
+      state.quizHistory = Array.isArray(saved.quizHistory) ? saved.quizHistory : [];
+      cacheState();
+      setSyncStatus("Đã đồng bộ Firebase");
+    }else{
+      await set(firebaseStateRef(), {
+        cardProgress: state.cardProgress,
+        quizHistory: state.quizHistory,
+        updatedAt: new Date().toISOString()
+      });
+      cacheState();
+      setSyncStatus("Đã tải tiến độ lên Firebase");
     }
-  }catch(e){ /* nothing saved yet — start fresh */ }
+  }catch(e){
+    console.error("Không tải được Firebase:", e);
+    setSyncStatus("Offline / dùng cache", false);
+  }
 }
+
 async function saveState(){
+  cacheState();
+
+  if(!currentUser){
+    setSyncStatus("Chưa đăng nhập · chỉ lưu trên máy", false);
+    return;
+  }
+
   try{
-    if(window.storage){
-      await window.storage.set('commodities-study-state', JSON.stringify(state), false);
-    }
-  }catch(e){ console.error('Không lưu được tiến độ:', e); }
+    await set(firebaseStateRef(), {
+      cardProgress: state.cardProgress,
+      quizHistory: state.quizHistory,
+      updatedAt: new Date().toISOString()
+    });
+    setSyncStatus("Đã lưu Firebase");
+  }catch(e){
+    console.error("Không lưu được tiến độ lên Firebase:", e);
+    setSyncStatus("Chưa đồng bộ Firebase", false);
+  }
 }
 
 function isDue(cardId){
@@ -1054,15 +1158,71 @@ function setCurveState(mode){
   }
 }
 
+// Các hàm này được gọi bởi inline onclick trong HTML.
+window.navigateTo = navigateTo;
+window.setCurveState = setCurveState;
+
 /* =========================================================
-   INIT
+   AUTH + INIT
    ========================================================= */
+function updateAccountUI(){
+  const email = document.getElementById('account-email');
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  if(!email || !loginBtn || !logoutBtn) return;
+
+  if(currentUser){
+    email.textContent = currentUser.email || 'Google account';
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'block';
+  }else{
+    email.textContent = 'Chưa đăng nhập';
+    loginBtn.style.display = 'block';
+    logoutBtn.style.display = 'none';
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', async ()=>{
+  try{
+    setSyncStatus('Đang mở đăng nhập Google…');
+    await signInWithPopup(auth, googleProvider);
+  }catch(e){
+    console.error('Đăng nhập Google thất bại:', e);
+    setSyncStatus('Đăng nhập thất bại', false);
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', async ()=>{
+  try{
+    await signOut(auth);
+    setSyncStatus('Đã đăng xuất', false);
+  }catch(e){
+    console.error('Đăng xuất thất bại:', e);
+  }
+});
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  updateAccountUI();
+
+  if(user){
+    await loadState();
+  }else{
+    loadCachedState();
+    setSyncStatus('Chưa đăng nhập · dùng cache', false);
+  }
+
+  renderRoadmap();
+  updateStatsBar();
+  updateNavDots();
+});
+
 async function init(){
-  await loadState();
   renderRoadmap();
   initSectionDecks();
   updateStatsBar();
   updateNavDots();
+  updateAccountUI();
   setTimeout(()=>{ document.getElementById('hero-curve-fill').style.strokeDashoffset = String(600 - 600*(masteryPercent()/100)); }, 200);
 }
 init();
