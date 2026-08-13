@@ -620,22 +620,13 @@ const firebaseConfig = {
 
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
-const DEVICE_ID_KEY = "alter1-cfa-reading30-device-id";
 const LOCAL_CACHE_KEY = "alter1-cfa-reading30-state";
 
-function getDeviceId(){
-  let id = localStorage.getItem(DEVICE_ID_KEY);
-  if(!id){
-    id = (window.crypto && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : "d-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
-    localStorage.setItem(DEVICE_ID_KEY, id);
-  }
-  return id;
-}
-
-const DEVICE_ID = getDeviceId();
-const FIREBASE_STATE_PATH = `users/${DEVICE_ID}/commoditiesStudy`;
+// Đường dẫn CỐ ĐỊNH, dùng chung cho mọi thiết bị (không gắn theo device-id).
+// Nhờ vậy điện thoại, laptop... đều đọc/ghi cùng một chỗ trên Firebase:
+// mở ở thiết bị nào cũng tải về đúng bản cập nhật gần nhất, và lưu ở thiết bị
+// nào cũng cập nhật cho tất cả các thiết bị khác thấy trong lần mở tiếp theo.
+const FIREBASE_STATE_PATH = "cfa/reading30_commodities/progress";
 
 function firebaseStateRef(){
   return ref(database, FIREBASE_STATE_PATH);
@@ -957,37 +948,40 @@ function renderFlashcardBrowser(containerId, cardsList, opts){
       <div class="deck-head">
         <div class="deck-progress">Thẻ ${idx+1} / ${cardsList.length} ${opts.showBox ? ' · box hiện tại: '+boxOf(c.id) : ''}</div>
         <div class="btn-row" style="margin-top:0;">
-          <button class="btn btn-ghost" id="fc-prev">← Trước</button>
-          <button class="btn btn-ghost" id="fc-next">Sau →</button>
+          <button class="btn btn-ghost fc-prev">← Trước</button>
+          <button class="btn btn-ghost fc-next">Sau →</button>
         </div>
       </div>
       <div class="flip-hint">Bấm vào thẻ để lật</div>
-      <div class="flashcard" id="fc-card">
+      <div class="flashcard fc-card">
         <div class="flashcard-inner">
           <div class="flashcard-face face-front"><span class="eyebrow">${c.id.toUpperCase()} · CÂU HỎI</span><div class="txt">${c.q}</div></div>
           <div class="flashcard-face face-back"><div class="txt">${c.a}</div></div>
         </div>
       </div>
-      <div class="grade-row" id="fc-grades" style="visibility:hidden;">
+      <div class="grade-row fc-grades" style="visibility:hidden;">
         <button class="btn btn-rust" data-g="forgot">😵 Chưa nhớ</button>
         <button class="btn btn-ghost" data-g="good">🙂 Nhớ được</button>
         <button class="btn btn-green" data-g="easy">😎 Dễ ợt</button>
       </div>
     `;
-    document.getElementById('fc-card').addEventListener('click', ()=>{
+    // Dùng container.querySelector (thay vì document.getElementById) để mỗi bộ thẻ
+    // chỉ thao tác trên đúng phần tử của chính nó — tránh xung đột id trùng lặp
+    // khi nhiều bộ thẻ (10 LOS + ôn tập ngắt quãng) cùng tồn tại trên trang.
+    container.querySelector('.fc-card').addEventListener('click', ()=>{
       flipped = !flipped;
-      document.getElementById('fc-card').classList.toggle('flipped', flipped);
-      document.getElementById('fc-grades').style.visibility = flipped ? 'visible' : 'hidden';
+      container.querySelector('.fc-card').classList.toggle('flipped', flipped);
+      container.querySelector('.fc-grades').style.visibility = flipped ? 'visible' : 'hidden';
     });
-    document.getElementById('fc-prev').addEventListener('click', ()=>{ idx = (idx-1+cardsList.length)%cardsList.length; draw(); });
-    document.getElementById('fc-next').addEventListener('click', ()=>{ idx = (idx+1)%cardsList.length; draw(); });
-    document.querySelectorAll('#fc-grades [data-g]').forEach(btn=>{
+    container.querySelector('.fc-prev').addEventListener('click', ()=>{ idx = (idx-1+cardsList.length)%cardsList.length; draw(); });
+    container.querySelector('.fc-next').addEventListener('click', ()=>{ idx = (idx+1)%cardsList.length; draw(); });
+    container.querySelectorAll('.fc-grades [data-g]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         gradeCard(c.id, btn.getAttribute('data-g'));
         if(idx < cardsList.length-1){ idx++; draw(); }
         else{
-          container.innerHTML = `<div class="empty-state"><div class="big">🎉</div>Bạn đã ôn hết lượt này!<div class="btn-row" style="justify-content:center;"><button class="btn btn-primary" id="fc-restart">Ôn lại từ đầu</button></div></div>`;
-          document.getElementById('fc-restart').addEventListener('click', ()=>{ idx=0; draw(); });
+          container.innerHTML = `<div class="empty-state"><div class="big">🎉</div>Bạn đã ôn hết lượt này!<div class="btn-row" style="justify-content:center;"><button class="btn btn-primary fc-restart">Ôn lại từ đầu</button></div></div>`;
+          container.querySelector('.fc-restart').addEventListener('click', ()=>{ idx=0; draw(); });
         }
       });
     });
