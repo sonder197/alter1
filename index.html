@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commodities & Commodity Derivatives — Ôn tập chủ động</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;600;700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1A17;
+    --surface:#242220;
+    --surface-2:#2B2822;
+    --surface-3:#332F27;
+    --border:#3C3730;
+    --gold:#CFA83C;
+    --gold-soft:#E8C765;
+    --green:#5B8C7B;
+    --green-soft:#8AB6A5;
+    --rust:#B8563A;
+    --rust-soft:#D9855F;
+    --text:#F0EBE0;
+    --text-muted:#B3A891;
+    --text-dim:#8A8071;
+    --radius:10px;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(207,168,60,.08), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{ font-family:'Roboto Slab',serif; font-weight:700; letter-spacing:-.01em; margin:0 0 .5em; color:var(--text);}
+  code, .mono{ font-family:'IBM Plex Mono',monospace; }
+  a{ color:var(--gold-soft); }
+  ::selection{ background:var(--gold); color:#1B1A17; }
+  :focus-visible{ outline:2px solid var(--gold-soft); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  #app{ display:flex; min-height:100vh; max-width:1400px; margin:0 auto; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:290px; flex-shrink:0;
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    padding:22px 16px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .brand-mark{ width:34px; height:34px; flex-shrink:0; }
+  .brand-text{ font-family:'Roboto Slab',serif; font-weight:900; font-size:15px; line-height:1.15; }
+  .brand-text small{ display:block; font-family:'Inter',sans-serif; font-weight:500; font-size:11px; color:var(--text-dim); letter-spacing:.04em; text-transform:uppercase; margin-top:2px;}
+  .sidebar-stats{ display:flex; gap:8px; margin:16px 0 20px; }
+  .stat-chip{ flex:1; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 10px; }
+  .stat-chip .num{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:17px; color:var(--gold-soft); }
+  .stat-chip .lbl{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
+
+  .nav-group-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-dim); margin:18px 6px 8px; font-weight:600;}
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:8px; cursor:pointer;
+    color:var(--text-muted); font-size:13.5px; margin-bottom:2px;
+    border:1px solid transparent; background:none; width:100%; text-align:left;
+    font-family:'Inter',sans-serif;
+  }
+  .nav-item:hover{ background:var(--surface-2); color:var(--text); }
+  .nav-item.active{ background:var(--surface-3); color:var(--gold-soft); border-color:var(--border); font-weight:600;}
+  .nav-item .dot{
+    width:8px; height:8px; border-radius:50%; flex-shrink:0;
+    background:var(--border); border:1px solid var(--text-dim);
+  }
+  .nav-item .dot.mastered{ background:var(--gold); border-color:var(--gold); }
+  .nav-item .dot.started{ background:var(--gold); opacity:.4; border-color:var(--gold);}
+  .nav-item .code{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim); flex-shrink:0; }
+  .nav-item.special{ color:var(--green-soft); }
+  .nav-item.special:hover{ background:var(--surface-2); }
+  .nav-item.special.active{ color:var(--gold-soft); }
+
+  /* ---------- Main ---------- */
+  .main{ flex:1; min-width:0; padding:28px 40px 80px; }
+  .view{ display:none; animation:fadein .25s ease; }
+  .view.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .los-tag{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--gold-soft);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:20px;
+    margin-bottom:14px;
+  }
+  .section-title{ font-size:26px; margin-bottom:4px; }
+  .section-sub{ color:var(--text-muted); font-size:14.5px; margin-bottom:26px; max-width:70ch;}
+
+  .theory p{ margin:0 0 14px; color:var(--text); }
+  .theory h4{ font-size:16px; color:var(--gold-soft); margin-top:22px; }
+  .theory ul{ margin:0 0 14px; padding-left:20px; }
+  .theory li{ margin-bottom:6px; }
+  .callout{
+    background:var(--surface-2); border-left:3px solid var(--gold); border-radius:8px;
+    padding:14px 16px; margin:18px 0; font-size:14px; color:var(--text-muted);
+  }
+  .callout b{ color:var(--gold-soft); }
+  .formula-box{
+    background:#171613; border:1px solid var(--border); border-radius:8px;
+    padding:14px 18px; margin:14px 0; font-family:'IBM Plex Mono',monospace; font-size:14.5px;
+    color:var(--gold-soft); overflow-x:auto;
+  }
+  .formula-box .label{ display:block; font-family:'Inter',sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-bottom:6px;}
+
+  table.dtable{ width:100%; border-collapse:collapse; margin:14px 0 20px; font-size:13.5px; }
+  table.dtable th, table.dtable td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  table.dtable th{ color:var(--gold-soft); font-family:'Roboto Slab',serif; font-weight:700; font-size:13px; }
+  table.dtable tr:hover td{ background:var(--surface-2); }
+
+  .tag{ display:inline-block; padding:2px 9px; border-radius:20px; font-size:11.5px; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+  .tag-rust{ background:rgba(184,86,58,.18); color:var(--rust-soft); border:1px solid rgba(184,86,58,.4); }
+  .tag-green{ background:rgba(91,140,123,.18); color:var(--green-soft); border:1px solid rgba(91,140,123,.4); }
+
+  .nudge{ display:flex; gap:10px; align-items:flex-start; background:var(--surface-2); border:1px dashed var(--border); border-radius:8px; padding:12px 14px; margin:20px 0; font-size:13.5px; color:var(--text-muted);}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer;
+    border-radius:8px; padding:10px 18px; border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+  }
+  .btn:hover{ border-color:var(--gold); }
+  .btn-primary{ background:var(--gold); color:#1B1A17; border-color:var(--gold); }
+  .btn-primary:hover{ background:var(--gold-soft); }
+  .btn-green{ background:var(--green); color:#0f1614; border-color:var(--green);}
+  .btn-green:hover{ background:var(--green-soft); }
+  .btn-rust{ background:var(--rust); color:#1B1A17; border-color:var(--rust); }
+  .btn-rust:hover{ background:var(--rust-soft); }
+  .btn-ghost{ background:transparent; }
+  .btn:disabled{ opacity:.35; cursor:default; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+
+  /* ---------- Flashcards ---------- */
+  .deck-wrap{ margin-top:20px; }
+  .deck-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
+  .deck-progress{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--text-dim); }
+  .flashcard{
+    perspective:1200px; height:220px; max-width:640px; margin:0 auto 16px; cursor:pointer;
+  }
+  .flashcard-inner{
+    position:relative; width:100%; height:100%; transition:transform .5s;
+    transform-style:preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner{ transform:rotateY(180deg); }
+  .flashcard-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:26px; border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .flashcard-face .txt{ font-size:16px; }
+  .face-front{ background:var(--surface-2); }
+  .face-front .eyebrow{ position:absolute; top:14px; left:18px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim);}
+  .face-back{ background:var(--surface-3); transform:rotateY(180deg); border-color:var(--gold);}
+  .face-back .txt{ font-size:14.5px; text-align:left; color:var(--text); }
+  .flip-hint{ text-align:center; font-size:11.5px; color:var(--text-dim); margin-bottom:14px;}
+  .grade-row{ display:flex; gap:10px; justify-content:center; margin-top:6px; flex-wrap:wrap;}
+  .grade-row .btn{ min-width:110px; }
+  .empty-state{ text-align:center; padding:50px 20px; color:var(--text-muted); }
+  .empty-state .big{ font-size:40px; margin-bottom:10px; }
+
+  /* ---------- Quiz ---------- */
+  .quiz-setup{ display:flex; gap:12px; flex-wrap:wrap; margin:18px 0; }
+  .quiz-card{ max-width:680px; }
+  .q-text{ font-size:17px; margin-bottom:18px; font-weight:600;}
+  .opt{
+    display:block; width:100%; text-align:left; padding:12px 16px; margin-bottom:10px;
+    border:1px solid var(--border); border-radius:8px; background:var(--surface-2); color:var(--text);
+    cursor:pointer; font-family:'Inter',sans-serif; font-size:14px;
+  }
+  .opt:hover{ border-color:var(--gold); }
+  .opt.correct{ border-color:var(--green); background:rgba(91,140,123,.15); color:var(--green-soft); }
+  .opt.wrong{ border-color:var(--rust); background:rgba(184,86,58,.15); color:var(--rust-soft); }
+  .opt:disabled{ cursor:default; }
+  .quiz-exp{ background:var(--surface-2); border-left:3px solid var(--gold); padding:12px 16px; border-radius:8px; font-size:13.5px; color:var(--text-muted); margin:14px 0;}
+  .quiz-score{ font-family:'IBM Plex Mono',monospace; color:var(--gold-soft); }
+  .quiz-progress-bar{ height:5px; background:var(--surface-2); border-radius:6px; overflow:hidden; margin-bottom:20px; }
+  .quiz-progress-fill{ height:100%; background:var(--gold); transition:width .3s; }
+
+  /* ---------- Hero (overview) ---------- */
+  .hero{ display:flex; gap:36px; align-items:center; margin-bottom:30px; flex-wrap:wrap; }
+  .hero-curve{ width:280px; flex-shrink:0; }
+  .hero-text h1{ font-size:30px; margin-bottom:8px; }
+  .hero-text p{ color:var(--text-muted); max-width:56ch; font-size:14.5px; }
+  .curve-fill{ stroke-dasharray:600; stroke-dashoffset:600; transition:stroke-dashoffset 1s ease; }
+  .overview-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:24px 0 8px; }
+  .ov-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+  .ov-card .n{ font-family:'IBM Plex Mono',monospace; font-size:26px; color:var(--gold-soft); }
+  .ov-card .l{ font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em;}
+  .roadmap{ display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .roadmap-item{ display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; cursor:pointer;}
+  .roadmap-item:hover{ border-color:var(--gold);}
+  .roadmap-item .code{ font-family:'IBM Plex Mono',monospace; color:var(--gold-soft); font-size:12.5px; width:38px; flex-shrink:0;}
+  .roadmap-item .t{ flex:1; font-size:14px; }
+  .roadmap-item .status{ font-size:11px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Curve explorer ---------- */
+  .curve-explorer{ background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin:20px 0;}
+  .curve-toggle{ display:flex; gap:10px; margin-bottom:16px; }
+  .curve-toggle .btn{ flex:1; }
+  .curve-labels{ display:flex; justify-content:space-around; margin-top:10px; font-size:13px; text-align:center;}
+  .curve-labels .lbl-name{ display:block; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px;}
+  .curve-labels .lbl-val{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;}
+
+  @media (max-width: 860px){
+    #app{ flex-direction:column; }
+    .sidebar{ position:relative; width:100%; height:auto; max-height:none; border-right:none; border-bottom:1px solid var(--border); }
+    .main{ padding:22px 18px 60px; }
+    .overview-grid{ grid-template-columns:1fr 1fr; }
+    .hero{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="8" fill="#2B2822"/>
+        <path d="M5 28 L14 20 L20 24 L34 10" stroke="#CFA83C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="34" cy="10" r="2.6" fill="#CFA83C"/>
+      </svg>
+      <div class="brand-text">Reading 30<small>Commodities & Derivatives</small></div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="stat-chip"><div class="num" id="stat-mastery">0%</div><div class="lbl">Đã thuộc</div></div>
+      <div class="stat-chip"><div class="num" id="stat-due">0</div><div class="lbl">Đến hạn ôn</div></div>
+    </div>
+
+    <button class="nav-item active" data-view="overview"><span class="dot"></span><span>Tổng quan</span></button>
+
+    <div class="nav-group-label">Module 30.1 — Nền tảng</div>
+    <button class="nav-item" data-view="a"><span class="dot" id="navdot-a"></span><span class="code">30.a</span><span>Đặc điểm sectors</span></button>
+    <button class="nav-item" data-view="b"><span class="dot" id="navdot-b"></span><span class="code">30.b</span><span>Vòng đời sản xuất</span></button>
+    <button class="nav-item" data-view="c"><span class="dot" id="navdot-c"></span><span class="code">30.c</span><span>So sánh định giá</span></button>
+    <button class="nav-item" data-view="d"><span class="dot" id="navdot-d"></span><span class="code">30.d</span><span>Người tham gia TT</span></button>
+    <button class="nav-item" data-view="e"><span class="dot" id="navdot-e"></span><span class="code">30.e</span><span>Spot vs Futures</span></button>
+    <button class="nav-item" data-view="f"><span class="dot" id="navdot-f"></span><span class="code">30.f</span><span>Ba lý thuyết</span></button>
+
+    <div class="nav-group-label">Module 30.2 — Lợi nhuận & Index</div>
+    <button class="nav-item" data-view="g"><span class="dot" id="navdot-g"></span><span class="code">30.g</span><span>Thành phần lợi nhuận</span></button>
+    <button class="nav-item" data-view="h"><span class="dot" id="navdot-h"></span><span class="code">30.h</span><span>Roll return</span></button>
+    <button class="nav-item" data-view="i"><span class="dot" id="navdot-i"></span><span class="code">30.i</span><span>Commodity swaps</span></button>
+    <button class="nav-item" data-view="j"><span class="dot" id="navdot-j"></span><span class="code">30.j</span><span>Cấu trúc Index</span></button>
+
+    <div class="nav-group-label">Luyện tập</div>
+    <button class="nav-item special" data-view="review">🔁 <span>Ôn tập ngắt quãng</span></button>
+    <button class="nav-item special" data-view="quiz">📝 <span>Kiểm tra tổng hợp</span></button>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="view active" id="view-overview">
+      <div class="hero">
+        <svg class="hero-curve" viewBox="0 0 280 160">
+          <path d="M20 130 Q140 20 260 130" fill="none" stroke="#3C3730" stroke-width="3"/>
+          <path id="hero-curve-fill" class="curve-fill" d="M20 130 Q140 20 260 130" fill="none" stroke="#CFA83C" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="20" cy="130" r="4" fill="#F0EBE0"/>
+          <circle cx="260" cy="130" r="4" fill="#CFA83C"/>
+          <text x="10" y="150" fill="#8A8071" font-size="10" font-family="IBM Plex Mono">spot</text>
+          <text x="235" y="150" fill="#8A8071" font-size="10" font-family="IBM Plex Mono">xa hạn</text>
+        </svg>
+        <div class="hero-text">
+          <h1>Introduction to Commodities and Commodity Derivatives</h1>
+          <p>Công cụ học chủ động cho Reading 30 (CFA Level 2 — Alternative Investments). Đường cong vàng bên trái sẽ "vẽ" dần theo % kiến thức bạn đã ghi nhớ — mỗi thẻ ôn tập bạn thuộc sẽ kéo đường cong dài thêm một chút.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>Trọng tâm kỳ thi (Exam Focus):</b> hiểu đặc điểm của từng nhóm hàng hóa và các yếu tố tác động giá; nắm chắc <span class="tag tag-rust">CONTANGO</span> và <span class="tag tag-green">BACKWARDATION</span> nghĩa là gì xét theo quan hệ spot–futures; hiểu các thành phần tạo nên tổng lợi nhuận của futures hàng hóa và điều gì quyết định roll return dương hay âm; thuộc lòng ba lý thuyết — Insurance Theory, Hedging Pressure Hypothesis, và Theory of Storage — cùng những gì mỗi lý thuyết nói về futures price.
+      </div>
+
+      <div class="overview-grid">
+        <div class="ov-card"><div class="n">10</div><div class="l">Learning Outcome Statements</div></div>
+        <div class="ov-card"><div class="n" id="ov-cardcount">—</div><div class="l">Thẻ ôn tập chủ động</div></div>
+        <div class="ov-card"><div class="n" id="ov-quizcount">—</div><div class="l">Câu hỏi trắc nghiệm</div></div>
+      </div>
+
+      <h3 style="margin-top:30px;">Bản đồ nội dung</h3>
+      <p class="section-sub" style="margin-bottom:14px;">Bấm vào từng LOS để vào học. Chấm vàng = đã bắt đầu ôn, chấm vàng đầy = đã thuộc (box ≥ 4).</p>
+      <div class="roadmap" id="roadmap"></div>
+
+      <div class="nudge">💡 <div><b>Cách dùng hiệu quả:</b> Lượt đầu tiên — đọc kỹ lý thuyết từng LOS theo thứ tự a→j, đừng bỏ qua phần nào. Sau khi đọc xong 1 LOS, làm ngay bộ thẻ "Ôn tập chủ động" ở cuối trang đó. Những ngày sau, quay lại và vào mục <b>Ôn tập ngắt quãng</b> — hệ thống sẽ tự chọn đúng những thẻ bạn sắp quên (spaced repetition, thuật toán Leitner). Tiến độ được lưu lại tự động trong trình duyệt này.</div></div>
+    </div>
+
+    <!-- ===== LOS a ===== -->
+    <div class="view" id="view-a">
+      <div class="los-tag">LOS 30.a</div>
+      <h2 class="section-title">So sánh đặc điểm các nhóm hàng hóa (Commodity Sectors)</h2>
+      <p class="section-sub">Compare characteristics of commodity sectors.</p>
+      <div class="theory">
+        <p>Giá hàng hóa biến động chủ yếu do các cú sốc cung–cầu (supply and demand shocks). Fundamental analysis cố gắng dự báo những cú sốc này bằng 4 nhóm công cụ:</p>
+        <ul>
+          <li><b>Announcements</b> — dự báo từ chính phủ hoặc tổ chức tư nhân, làm đầu vào cho mô hình phân tích.</li>
+          <li><b>Component analysis</b> — phân tích cung–cầu của từng thành phần cấu thành nên nhóm hàng hóa lớn hơn (ví dụ: jet fuel, diesel, gasoline, lubricants đều là component của crude oil) để tinh chỉnh dự báo tổng.</li>
+          <li><b>Timing issues</b> — tính đến yếu tố mùa vụ (seasonality) và các vấn đề logistics đã từng quan sát được.</li>
+          <li><b>Macro</b> — các yếu tố vĩ mô như lạm phát có thể kích thích nhu cầu hàng hóa; lãi suất thấp thúc đẩy chi tiêu vốn và do đó nhu cầu hàng hóa trong trung hạn.</li>
+        </ul>
+
+        <h4>Sáu nhóm ngành hàng hóa</h4>
+        <table class="dtable">
+          <tr><th>Sector</th><th>Ví dụ</th><th>Đặc điểm chính cần nhớ</th></tr>
+          <tr><td><b>Energy</b></td><td>Crude oil, natural gas, refined products</td><td>Giá trị thị trường lớn nhất trong các sector; nguồn thu quan trọng của nhiều quốc gia/khu vực; rủi ro địa chính trị cao (hơn 50% nguồn cung crude đến từ Trung Đông).</td></tr>
+          <tr><td><b>Industrial metals</b></td><td>Nhôm, nickel, kẽm, chì, thiếc, sắt, đồng</td><td>Nhu cầu gắn chặt với tăng trưởng GDP & business cycle (xây dựng, sản xuất); lưu trữ không tốn kém; sản xuất có economies of scale với chi phí cố định rất cao.</td></tr>
+          <tr><td><b>Grains</b></td><td>Lúa mì, ngô, đậu nành, gạo</td><td>Sản xuất theo mùa vụ hàng năm; rủi ro chính: hạn hán, mưa đá, lũ lụt, sâu bệnh, khí hậu; then chốt với an ninh lương thực toàn cầu.</td></tr>
+          <tr><td><b>Livestock</b></td><td>Heo, cừu, bò, gia cầm</td><td>Nguồn cung phụ thuộc giá thức ăn (ngũ cốc) — tạo ra tính chu kỳ; rủi ro thời tiết & dịch bệnh; freezing cho phép lưu trữ giới hạn.</td></tr>
+          <tr><td><b>Precious metals</b></td><td>Vàng, bạc, bạch kim</td><td>Lưu trữ vô thời hạn; vàng là store of value / hedge lạm phát; nhu cầu trang sức tăng theo tích lũy của cải; nhu cầu công nghiệp nhạy với business cycle.</td></tr>
+          <tr><td><b>Softs</b></td><td>Cà phê, đường, ca cao, bông</td><td>Trồng ở vùng khí hậu ấm, vĩ độ thấp; rủi ro chính: thời tiết & dịch bệnh; nhu cầu tăng theo thu nhập ở nền kinh tế đang phát triển, phụ thuộc thị hiếu tiêu dùng.</td></tr>
+        </table>
+
+        <h4>Chi tiết đáng chú ý theo sector</h4>
+        <p><b>Crude oil:</b> dầu "light" (độ nhớt thấp) và "sweet" (ít sulfur) tốn ít chi phí lọc hơn → bán giá premium so với dầu "heavy/sour". Có thể lưu trữ vô thời hạn (để dưới lòng đất, trong bồn, trên tàu chở dầu); nhiều nước có dự trữ chiến lược. Cung tăng nhờ công nghệ khoan/khai thác; cầu bị kìm hãm bởi công nghệ lọc dầu hiệu quả hơn, động cơ tiết kiệm hơn, năng lượng thay thế hiệu quả hơn, và quy định môi trường ngày càng khắt khe (vừa giảm cung vừa tăng chi phí sản xuất). Nhu cầu tăng mạnh trong giai đoạn kinh tế mở rộng (tín dụng dễ tiếp cận) và giảm mạnh khi suy thoái.</p>
+        <p><b>Refined products</b> (gasoline, heating oil, jet fuel): chỉ lưu trữ được thời gian ngắn — sản lượng nhà máy lọc dầu chính là yếu tố cung quan trọng nhất. Do năng lực lọc dầu tập trung theo địa lý, thời tiết cực đoan ở vài vùng ven biển có thể ảnh hưởng lớn đến nguồn cung. Nhu cầu mang tính mùa vụ: mùa hè tăng nhu cầu gasoline (du lịch), mùa đông tăng nhu cầu heating oil.</p>
+        <p><b>Natural gas:</b> gần như không cần xử lý sau khi khai thác. Chi phí vận chuyển là yếu tố quan trọng: crude oil vận chuyển bằng tàu với chi phí thấp, trong khi natural gas phải hóa lỏng (cooled to liquid state) mới vận chuyển được bằng tàu — chi phí cao hơn đáng kể. <b>Associated gas</b> (khí đồng hành) sinh ra cùng quá trình khai thác dầu nên nguồn cung gắn với sản lượng dầu; <b>unassociated gas</b> đến từ các mỏ không có dầu nên nguồn cung độc lập. Tính mùa vụ của natural gas rõ nét hơn crude oil: mùa đông lạnh tăng nhu cầu sưởi, mùa hè nóng cũng tăng nhu cầu (làm mát, vì gas là nguồn nhiên liệu chính cho phát điện).</p>
+        <p><b>Industrial metals:</b> phải luyện (smelt) từ quặng khai thác. Cả mỏ lẫn nhà máy luyện kim đều là hoạt động quy mô lớn, chi phí phát triển và chi phí cố định rất cao. Rủi ro cung: đình công, quy định môi trường khắt khe.</p>
+        <p><b>Livestock:</b> khi giá ngũ cốc (thức ăn) tăng, chi phí nuôi tăng → tỷ lệ giết mổ tăng (giảm đàn) → giá giảm trong ngắn hạn; việc thu hẹp đàn này sau đó có thể khiến giá tăng trở lại — tạo ra tính chu kỳ đặc trưng. Tăng trưởng thu nhập ở các nền kinh tế đang phát triển là nguồn tăng trưởng nhu cầu quan trọng.</p>
+        <p><b>Softs:</b> giống ngũ cốc, thời tiết là yếu tố quyết định chính đến sản xuất và giá, cộng thêm rủi ro dịch bệnh. Nhu cầu tăng theo thu nhập nhưng còn phụ thuộc thị hiếu người tiêu dùng.</p>
+      </div>
+
+      <div class="nudge">✅ Đọc xong phần này, gấp máy lại và thử liệt kê 6 sector kèm 1 đặc điểm cung/cầu đặc trưng của mỗi nhóm — trước khi làm bộ thẻ bên dưới.</div>
+      <div id="deck-a" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS b ===== -->
+    <div class="view" id="view-b">
+      <div class="los-tag">LOS 30.b</div>
+      <h2 class="section-title">Vòng đời hàng hóa: từ sản xuất đến giao dịch/tiêu dùng</h2>
+      <p class="section-sub">Compare the life cycle of commodity sectors from production through trading or consumption.</p>
+      <div class="theory">
+        <p><b>Crude oil:</b> khoan giếng → khai thác (extract) → vận chuyển → lưu trữ (thường không quá vài tháng) → lọc dầu (refine) thành gasoline, heating oil, diesel, jet fuel → vận chuyển đến người tiêu dùng.</p>
+        <p><b>Natural gas:</b> gần như không cần xử lý sau khai thác; đến tay người dùng qua đường ống, hoặc được hóa lỏng và vận chuyển bằng tàu chuyên dụng. Giao hàng quanh năm nhưng nhu cầu vẫn mang tính mùa vụ.</p>
+        <p><b>Industrial metals:</b> quặng khai thác được luyện (smelt) thành kim loại đạt chất lượng người dùng cuối cần. Có thể lưu trữ gần như vô thời hạn, dòng sản lượng đều đặn nên futures contract có thể giao hàng theo tháng. Đặc trưng quan trọng: economies of scale — các dự án khai thác/luyện kim quy mô lớn tốn hàng tỷ đô và mất nhiều năm xây dựng. Rủi ro: công suất mới xây dựng lúc giá cao/công suất sử dụng cao có thể chỉ đi vào hoạt động đúng lúc hoặc <i>sau</i> đỉnh chu kỳ kinh tế → gây dư cung. Vì mỏ/nhà máy luyện kim hoạt động hiệu quả nhất khi gần công suất tối đa, nhà sản xuất thường ngần ngại giảm sản lượng dù giá đã giảm.</p>
+        <p><b>Livestock:</b> thời gian nuôi trước giết mổ khác nhau theo loài — gà: vài tuần; heo: khoảng 6 tháng; bò: vài năm. Freezing cho phép lưu trữ sau giết mổ trong một khoảng thời gian và cho phép thương mại quốc tế (ví dụ thịt bò đông lạnh). Có yếu tố mùa vụ đáng kể.</p>
+        <p><b>Grains:</b> sản xuất mang tính mùa vụ nên ngày đáo hạn futures thường trùng với thời điểm thu hoạch. Vì gieo trồng diễn ra trước thu hoạch 5 tháng trở lên, sản lượng phần lớn được ấn định theo kỳ vọng nhu cầu tại thời điểm gieo trồng — chứ không phải điều chỉnh theo giá thực tế lúc thu hoạch. Ngũ cốc lưu trữ được thời gian dài. Độ lệch 6 tháng giữa vụ mùa Bắc và Nam bán cầu giúp hàng hóa về thị trường thường xuyên hơn.</p>
+        <p><b>Softs — ví dụ coffee:</b> được thu hoạch ở đâu đó trên thế giới gần như mọi tháng trong năm. Cà phê được lưu kho sau khi vận chuyển bằng tàu; các nhà rang xay địa phương rang và giao cho người dùng/điểm bán lẻ. Cây cà phê mất tới <b>4 năm</b> mới cho quả — tạo độ trễ lớn giữa đầu tư mở rộng năng lực trồng và khi nguồn cung thực sự tăng. Nhà sản xuất hedge bằng cách bán futures để giao hàng tại kho; công ty tiêu thụ hedge bằng cách mua futures và nhận hàng tại kho. Hai loại hạt chính: <b>Robusta</b> và <b>Arabica</b> (Arabica là loại cao cấp/premium).</p>
+      </div>
+      <div class="nudge">✅ Thử vẽ lại (trên giấy hoặc trong đầu) 5 bước vòng đời của crude oil và của coffee trước khi ôn thẻ.</div>
+      <div id="deck-b" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS c ===== -->
+    <div class="view" id="view-c">
+      <div class="los-tag">LOS 30.c</div>
+      <h2 class="section-title">So sánh định giá: Commodities vs. Equities & Bonds</h2>
+      <p class="section-sub">Contrast the valuation of commodities with the valuation of equities and bonds.</p>
+      <div class="theory">
+        <p>Cổ phiếu và trái phiếu là <b>tài sản tài chính</b> — được định giá bằng cách chiết khấu (present value) các dòng tiền kỳ vọng trong tương lai (cổ tức, lãi coupon...).</p>
+        <p>Commodities là <b>tài sản vật chất</b>: không tạo ra thu nhập hay dòng tiền, và có thể phát sinh chi phí lưu kho (storage) và vận chuyển (transportation). Vì vậy không thể định giá bằng mô hình chiết khấu dòng tiền như cổ phiếu/trái phiếu.</p>
+        <p>Thay vào đó, giá spot hiện tại của một commodity có thể được xem như <b>giá trị chiết khấu (discounted value)</b> của mức giá bán kỳ vọng tại một thời điểm trong tương lai. Chi phí lưu kho có xu hướng khiến forward/futures price <b>cao hơn</b> khi ngày đáo hạn càng xa trong tương lai — đây chính là mầm mống của khái niệm contango/backwardation sẽ học ở LOS 30.e–f.</p>
+      </div>
+      <div id="deck-c" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS d ===== -->
+    <div class="view" id="view-d">
+      <div class="los-tag">LOS 30.d</div>
+      <h2 class="section-title">Các nhóm người tham gia thị trường Futures hàng hóa</h2>
+      <p class="section-sub">Describe types of participants in commodity futures markets.</p>
+      <div class="theory">
+        <table class="dtable">
+          <tr><th>Nhóm</th><th>Vai trò</th></tr>
+          <tr><td><b>Hedgers</b></td><td>Giảm rủi ro giá bằng cách long hoặc short futures. Được xem là <i>informed investors</i> vì họ trực tiếp sản xuất hoặc sử dụng commodity.</td></tr>
+          <tr><td><b>Traders & Investors</b></td><td>Gồm <i>informed investors</i> (cung cấp thanh khoản cho thị trường) và <i>arbitrageurs</i>.</td></tr>
+          <tr><td><b>Speculators</b></td><td>Chủ động chấp nhận rủi ro giá để tìm lợi nhuận — có thể qua lợi thế thông tin, hoặc bằng cách cung cấp thanh khoản (mua khi short hedgers bán, bán khi long hedgers mua).</td></tr>
+          <tr><td><b>Arbitrageurs</b></td><td>Kinh doanh mua/bán/lưu trữ hàng hóa vật chất khi chênh lệch spot–futures lệch quá xa (hoặc quá gần) so với chi phí lưu kho thực tế.</td></tr>
+          <tr><td><b>Exchanges</b></td><td>Vận hành tại nhiều trung tâm tài chính lớn trên thế giới, phản ánh tính toàn cầu hóa của sản xuất/tiêu dùng hàng hóa và thị trường tài chính.</td></tr>
+          <tr><td><b>Analysts</b></td><td>Được xem là <i>non-market participants</i> — dùng thông tin thị trường để phân tích cho chính phủ, trường đại học, tổ chức dự báo kinh tế, công ty phân tích dữ liệu.</td></tr>
+          <tr><td><b>Regulators</b></td><td>Giám sát thị trường hàng hóa; tại Mỹ là <b>CFTC</b> (Commodities Futures Trading Commission).</td></tr>
+        </table>
+
+        <div class="callout"><b>Ghi nhớ bằng câu:</b> hedgers "làm trong thị trường futures đúng điều họ sẽ phải làm trong tương lai thực tế". Một nông dân trồng lúa mì sẽ phải <i>bán</i> lúa mì sau thu hoạch → <b>bán (short) futures</b> ngay bây giờ để hedge. Một nhà máy xay bột sẽ phải <i>mua</i> lúa mì trong tương lai → <b>mua (long) futures</b> ngay bây giờ để hedge.</div>
+
+        <p>Ví dụ kinh điển: một nông dân trồng ngô giảm bất định về giá bán bằng cách <b>bán (short)</b> futures ngô. Một người chăn nuôi bò (cần mua ngô làm thức ăn) lại hedge rủi ro chi phí bằng cách <b>mua (long)</b> futures ngô.</p>
+
+        <p><b>Arbitrage cụ thể:</b> khi chênh lệch spot–futures <i>quá lớn</i> so với chi phí lưu kho thực, arbitrageur mua và lưu trữ commodity, đồng thời bán commodity đó ở mức giá futures (quá cao). Khi chênh lệch <i>quá nhỏ</i>, arbitrageur "không lưu trữ" — bán ra từ tồn kho sẵn có và long futures, sau đó bổ sung lại tồn kho ở ngày đáo hạn tương lai.</p>
+      </div>
+      <div id="deck-d" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS e ===== -->
+    <div class="view" id="view-e">
+      <div class="los-tag">LOS 30.e</div>
+      <h2 class="section-title">Quan hệ Spot–Futures: Contango & Backwardation</h2>
+      <p class="section-sub">Analyze the relationship between spot prices and futures prices in markets in contango and markets in backwardation.</p>
+      <div class="theory">
+        <p>Chênh lệch giữa giá spot (cash) và giá futures cho một ngày đáo hạn trong tương lai gọi là <b>basis</b> của hợp đồng đó — có thể dương hoặc âm.</p>
+        <div class="formula-box"><span class="label">Basis</span>Basis = Giá spot − Giá futures</div>
+        <p>Chênh lệch giữa giá futures kỳ hạn gần (nearer maturity) và giá futures kỳ hạn xa (more-distant maturity) gọi là <b>calendar spread</b>.</p>
+        <div class="formula-box"><span class="label">Calendar spread</span>Calendar spread = Giá futures (kỳ hạn gần) − Giá futures (kỳ hạn xa)</div>
+
+        <table class="dtable">
+          <tr><th>Trạng thái</th><th>Futures price theo thời gian</th><th>Basis</th><th>Calendar spread</th></tr>
+          <tr><td><span class="tag tag-rust">CONTANGO</span></td><td>Càng xa hạn, futures price càng <b>cao</b></td><td>Âm</td><td>Âm</td></tr>
+          <tr><td><span class="tag tag-green">BACKWARDATION</span></td><td>Càng xa hạn, futures price càng <b>thấp</b></td><td>Dương</td><td>Dương</td></tr>
+        </table>
+
+        <div class="curve-explorer">
+          <div class="curve-toggle">
+            <button class="btn btn-rust" id="btn-contango" onclick="setCurveState('contango')">Xem CONTANGO</button>
+            <button class="btn btn-green" id="btn-backwardation" onclick="setCurveState('backwardation')">Xem BACKWARDATION</button>
+          </div>
+          <svg viewBox="0 0 500 160" style="width:100%; height:auto;">
+            <line x1="40" y1="130" x2="470" y2="130" stroke="#3C3730" stroke-width="1"/>
+            <path id="explorer-curve" d="M60 100 Q265 100 440 100" fill="none" stroke="#CFA83C" stroke-width="3" stroke-linecap="round" style="transition:d .5s;"/>
+            <circle cx="60" cy="100" r="5" fill="#F0EBE0"/>
+            <text x="45" y="145" fill="#8A8071" font-size="11" font-family="IBM Plex Mono">t=0 (spot)</text>
+            <text x="410" y="145" fill="#8A8071" font-size="11" font-family="IBM Plex Mono">xa hạn</text>
+          </svg>
+          <div class="curve-labels">
+            <div><span class="lbl-name">Basis</span><span class="lbl-val" id="lbl-basis">—</span></div>
+            <div><span class="lbl-name">Calendar spread</span><span class="lbl-val" id="lbl-cspread">—</span></div>
+            <div><span class="lbl-name">Roll return (long)</span><span class="lbl-val" id="lbl-roll">—</span></div>
+          </div>
+        </div>
+
+        <p>Khi thị trường <span class="tag tag-green">BACKWARDATION</span>: vị thế long futures có thành phần lợi nhuận dương (gọi là "roll return", sẽ học chi tiết ở LOS 30.g–h). Lý do: futures price hội tụ (converge) lên giá spot theo thời gian khi tiến gần đáo hạn.</p>
+        <p>Khi thị trường <span class="tag tag-rust">CONTANGO</span>: vị thế long futures có thành phần lợi nhuận âm — khi thời gian trôi qua, futures price hội tụ giảm về giá spot (hoặc futures kỳ hạn xa hội tụ về futures kỳ hạn gần), làm giảm giá trị vị thế long.</p>
+      </div>
+      <div id="deck-e" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS f ===== -->
+    <div class="view" id="view-f">
+      <div class="los-tag">LOS 30.f</div>
+      <h2 class="section-title">Ba lý thuyết về lợi nhuận Futures hàng hóa</h2>
+      <p class="section-sub">Compare theories of commodity futures returns.</p>
+      <div class="theory">
+        <p>Ba lý thuyết giải thích hình dạng đường cong futures (và do đó, lợi nhuận futures): <b>Insurance Theory</b>, <b>Hedging Pressure Hypothesis</b>, và <b>Theory of Storage</b>.</p>
+
+        <h4>1. Insurance Theory (Keynes)</h4>
+        <p>Nhà kinh tế học John Maynard Keynes cho rằng mong muốn giảm rủi ro giá của <b>producers</b> chính là động lực chi phối lợi nhuận futures. Producers đối mặt bất định về giá bán trong tương lai nên bán futures để giảm bất định — hành động bán này đẩy futures price xuống thấp hơn giá spot hiện tại. Insurance Theory cho rằng futures price thấp hơn spot price nhằm tạo ra lợi nhuận cho người mua futures (speculators) — như một khoản "phí bảo hiểm" mà producers trả để speculators gánh chịu rủi ro giá hộ họ. Keynes gọi trạng thái này là <b>"normal backwardation"</b>.</p>
+        <p><b>Điểm yếu (2 phát hiện thực nghiệm):</b></p>
+        <ul>
+          <li>Ở các thị trường thực sự backwardation, việc mua futures <b>không</b> thực sự mang lại lợi nhuận vượt trội như lý thuyết dự đoán cho người "bán bảo hiểm giá".</li>
+          <li>Rất nhiều thị trường lại ở trạng thái <b>contango</b> chứ không phải backwardation — điều này ngụ ý lợi nhuận <i>âm</i> cho người cung cấp "bảo hiểm giá", mâu thuẫn với lý thuyết.</li>
+        </ul>
+
+        <h4>2. Hedging Pressure Hypothesis</h4>
+        <p>Bổ sung thêm hành vi hedging của <b>người tiêu dùng/sử dụng (consumers/users)</b> vào Insurance Theory. Giống như nông dân lúa mì đối mặt bất định về giá bán, một công ty làm bánh cũng đối mặt bất định về giá bột mì phải trả trong tương lai — công ty này sẽ <b>long</b> futures lúa mì để hedge. Người dùng hedge càng nhiều bằng vị thế long, áp lực tăng giá futures càng lớn.</p>
+        <table class="dtable">
+          <tr><th>Bên nào hedge mạnh hơn</th><th>Trạng thái thị trường</th></tr>
+          <tr><td>Producers' hedging chiếm ưu thế (bán nhiều)</td><td><span class="tag tag-green">Backwardation</span></td></tr>
+          <tr><td>Users' hedging chiếm ưu thế (mua nhiều)</td><td><span class="tag tag-rust">Contango</span></td></tr>
+        </table>
+        <p><b>Điểm yếu:</b></p>
+        <ul>
+          <li>Producers thường đối mặt rủi ro giá <b>tập trung</b> hơn nhiều so với consumers — với người tiêu dùng cá nhân, một commodity chỉ chiếm phần rất nhỏ trong thu nhập; với người dùng thương mại, chi phí commodity đó có thể chỉ là phần nhỏ trong tổng chi phí sản xuất. Sự bất cân xứng này làm suy yếu giả thuyết.</li>
+          <li>Cả producer lẫn consumer đều có thể vừa là speculator, không chỉ đơn thuần là hedger.</li>
+          <li>"Hedging pressure" là đại lượng <b>không quan sát được</b> trực tiếp → không thể kiểm định thực nghiệm giả thuyết này một cách trực tiếp.</li>
+        </ul>
+
+        <h4>3. Theory of Storage</h4>
+        <p>Dựa trên mối quan hệ giữa <b>chi phí lưu kho (storage cost)</b> để dùng trong tương lai và <b>lợi ích của việc nắm giữ tồn kho vật chất (physical inventory)</b> ngay bây giờ.</p>
+        <div class="formula-box"><span class="label">Theory of Storage</span>Futures price = Spot price + Storage cost − Convenience yield</div>
+        <p><b>Convenience yield</b> là lợi ích của việc có sẵn tồn kho vật chất trong tay. Convenience yield càng cao khi tồn kho vật chất thấp và xác suất thiếu hụt nguồn cung cao.</p>
+        <table class="dtable">
+          <tr><th>So sánh</th><th>Kết quả</th></tr>
+          <tr><td>Storage cost &gt; Convenience yield</td><td>Futures &gt; Spot → <span class="tag tag-rust">Contango</span> (giữ futures hấp dẫn hơn giữ tồn kho hiện tại)</td></tr>
+          <tr><td>Convenience yield &gt; Storage cost</td><td>Spot &gt; Futures → <span class="tag tag-green">Backwardation</span> (giữ hàng ngay bây giờ hấp dẫn hơn)</td></tr>
+        </table>
+        <p>Hình dạng đường cong futures vì vậy phụ thuộc vào nguồn cung sẵn có hiện tại (tồn kho hiện hành) cùng với kỳ vọng cung–cầu tương lai.</p>
+
+        <p style="margin-top:18px;"><i>Kết luận chung:</i> cả ba lý thuyết đều chưa đưa ra một lý thuyết hoàn chỉnh về lợi nhuận futures hàng hóa — "hedging pressure" và "convenience yield" đều không quan sát được trực tiếp, còn chi phí lưu kho thì các doanh nghiệp thường không công bố rõ ràng.</p>
+      </div>
+      <div id="deck-f" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS g ===== -->
+    <div class="view" id="view-g">
+      <div class="los-tag">LOS 30.g</div>
+      <h2 class="section-title">Thành phần tổng lợi nhuận của Futures hàng hóa được Collateral hóa đầy đủ</h2>
+      <p class="section-sub">Describe, calculate, and interpret the components of total return for a fully collateralized commodity futures contract.</p>
+      <div class="theory">
+        <p>Nhà đầu tư muốn có exposure long với giá commodity thường thực hiện qua công cụ phái sinh (forward/futures) thay vì mua và lưu trữ hàng hóa vật chất trực tiếp — vì nhiều commodity không thể mua-trữ dài hạn hiệu quả, và với một số loại (như kim loại quý), giữ vị thế derivative hiệu quả hơn nắm giữ vật chất.</p>
+        <p>Lợi nhuận trên một vị thế derivative <b>không giống</b> lợi nhuận trên bản thân commodity. Tổng lợi nhuận (total return) của một vị thế long futures được <b>collateral hóa đầy đủ (fully collateralized)</b> — nghĩa là nhà đầu tư đã ký quỹ tiền mặt/chứng khoán có giá trị bằng đúng notional value (giá × quy mô hợp đồng) — gồm 3 thành phần:</p>
+
+        <table class="dtable">
+          <tr><th>Thành phần</th><th>Định nghĩa / Công thức</th></tr>
+          <tr><td><b>Collateral return</b><br><span style="color:var(--text-dim); font-size:12px;">(collateral yield)</span></td><td>Lợi tức trên tài sản ký quỹ. Nếu ký quỹ bằng T-bills, chính là holding period yield của T-bills đó.</td></tr>
+          <tr><td><b>Price return</b><br><span style="color:var(--text-dim); font-size:12px;">(spot yield)</span></td><td>Thay đổi giá spot (được ước lượng bằng giá futures hợp đồng near-month).</td></tr>
+          <tr><td><b>Roll return</b><br><span style="color:var(--text-dim); font-size:12px;">(roll yield)</span></td><td>Lãi/lỗ phát sinh khi đóng hợp đồng sắp đáo hạn và mở hợp đồng mới xa hạn hơn (rolling over).</td></tr>
+        </table>
+
+        <div class="formula-box"><span class="label">Price return</span>Price return = (Giá hiện tại − Giá trước đó) / Giá trước đó</div>
+
+        <p>Vì hợp đồng futures/derivative hàng hóa có ngày đáo hạn, nhà đầu tư muốn duy trì vị thế theo thời gian phải đóng hợp đồng sắp đáo hạn và mở lại vị thế mới với ngày đáo hạn xa hơn — quá trình này gọi là <b>rolling over</b>, tạo ra lãi/lỗ gọi là roll return (roll yield).</p>
+
+        <div class="formula-box"><span class="label">Roll return</span>Roll return = (Giá hợp đồng sắp đáo hạn − Giá hợp đồng mới) / Giá hợp đồng sắp đáo hạn</div>
+
+        <p>Roll return <b>dương</b> nếu đường cong futures đang <span class="tag tag-green">backwardation</span>, và <b>âm</b> nếu đang <span class="tag tag-rust">contango</span>. Để giữ nguyên giá trị vị thế long, nhà đầu tư phải mua <b>nhiều hơn</b> hợp đồng nếu hợp đồng mới (xa hạn hơn) có giá thấp hơn (thị trường backwardation), và mua <b>ít hơn</b> nếu giá cao hơn (thị trường contango). Xét trên nhiều kỳ, roll return thường khá nhỏ — nhưng có thể chiếm tỷ trọng đáng kể trong tổng lợi nhuận của <i>một</i> kỳ đơn lẻ.</p>
+      </div>
+      <div id="deck-g" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS h ===== -->
+    <div class="view" id="view-h">
+      <div class="los-tag">LOS 30.h</div>
+      <h2 class="section-title">Roll Return: Contango vs. Backwardation (có ví dụ tính toán)</h2>
+      <p class="section-sub">Contrast roll return in markets in contango and markets in backwardation.</p>
+      <div class="theory">
+        <h4>Ví dụ 1 — Corn, thị trường CONTANGO</h4>
+        <p>Một portfolio manager đang roll futures ngô tháng 7 (đang giao dịch ở <b>397 cents/bushel</b>) sang futures ngô tháng 11 (đang giao dịch ở <b>406 cents/bushel</b>).</p>
+        <div class="formula-box">Roll return = (397 − 406) / 397 = <b style="color:var(--rust-soft)">−2.27%</b></div>
+        <p>Thị trường corn đang ở <span class="tag tag-rust">contango</span> (hợp đồng xa hạn hơn có giá cao hơn) → roll return <b>âm</b>.</p>
+
+        <h4>Ví dụ 2 — Natural gas, thị trường BACKWARDATION</h4>
+        <p>Manager roll futures natural gas tháng 7 (<b>2.35 USD/triệu cubic feet</b>) sang futures tháng 8 (<b>2.22 USD/triệu cubic feet</b>).</p>
+        <div class="formula-box">Roll return = (2.35 − 2.22) / 2.35 = <b style="color:var(--green-soft)">+5.53%</b></div>
+        <p>Thị trường natural gas đang <span class="tag tag-green">backwardation</span> → roll return <b>dương</b>.</p>
+        <p>Giả sử muốn giữ nguyên exposure $10,000 với natural gas: ban đầu long <code>10,000 / 2.35 ≈ 4,255</code> hợp đồng. Khi roll sang hợp đồng mới ở giá 2.22, để giữ đúng $10,000 exposure, phải long <code>10,000 / 2.22 ≈ 4,504</code> hợp đồng — <b>nhiều hơn</b>, vì giá hợp đồng mới thấp hơn (đặc trưng của backwardation).</p>
+        <p>Nếu natural gas chiếm <b>8.5%</b> danh mục, đóng góp roll return vào lợi nhuận danh mục:</p>
+        <div class="formula-box">0.085 × 5.53% = <b>0.47%</b></div>
+      </div>
+      <div id="deck-h" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS i ===== -->
+    <div class="view" id="view-i">
+      <div class="los-tag">LOS 30.i</div>
+      <h2 class="section-title">Commodity Swaps</h2>
+      <p class="section-sub">Describe how commodity swaps are used to obtain or modify exposure to commodities.</p>
+      <div class="theory">
+        <p>Swaps là công cụ OTC được tùy chỉnh (customized), tạo và bán bởi các dealer — dealer có thể tự chịu rủi ro từ swap đó, hoặc hedge bằng một swap đối ứng (offsetting swap) hoặc bằng cách nắm giữ commodity vật chất. Thanh toán giữa hai bên có thể dựa trên nhiều yếu tố rủi ro khác nhau: excess return, total return, hoặc biến động giá (price volatility).</p>
+
+        <div class="callout"><b>Lưu ý so sánh:</b> các swap truyền thống (lãi suất, tiền tệ, equity) thường có 2 dòng thanh toán định kỳ được bù trừ (net) với nhau. Một số swap hàng hóa dưới đây (total/excess return, volatility) có thể chỉ yêu cầu <b>một khoản thanh toán duy nhất</b> lúc khởi tạo, sau đó bên mua nhận thanh toán định kỳ dựa trên total return, excess return, hoặc biến động của commodity — về bản chất là đang "mua" quyền tiếp cận exposure với yếu tố rủi ro đó.</div>
+
+        <h4>1. Total return swap</h4>
+        <p>Bên mua (long) nhận thanh toán định kỳ = thay đổi futures price của commodity <b>cộng</b> lợi tức trên collateral, đổi lại trả một chuỗi thanh toán cố định (fixed). Mỗi kỳ, long nhận total return trên khoản notional principal, trừ đi khoản phải trả cho short. Nếu total return âm, long phải <b>trả</b> (fixed payment % + phần trăm lỗ) × notional.</p>
+        <p><b>Ví dụ tính toán:</b> Swap trên WTI crude oil, notional $10 triệu, kỳ hạn 2 năm, long trả 25bp mỗi tháng và nhận total return của WTI.</p>
+        <ul>
+          <li>Tháng 1: WTI tăng từ 41.50 lên 42.10 (+1.45%). Long nhận ròng = (0.0145 − 0.0025) × $10 triệu = <b style="color:var(--green-soft)">$120,000</b>.</li>
+          <li>Tháng 2: WTI giảm từ 42.10 xuống 41.20 (−2.14%). Long phải trả = (−0.0214 − 0.0025) × $10 triệu = <b style="color:var(--rust-soft)">−$239,000</b> (tức trả $239,000 cho short).</li>
+        </ul>
+        <p>Total return swap thường được các tổ chức dùng để có exposure với rủi ro giá commodity mà không cần nắm giữ vật chất hay tự quản lý việc roll vị thế futures theo thời gian.</p>
+
+        <h4>2. Excess return swap</h4>
+        <p>Bên mua trả <b>một lần duy nhất</b> lúc khởi tạo swap, sau đó nhận thanh toán định kỳ bằng phần trăm mà giá commodity <b>vượt</b> một mức cố định/benchmark, nhân với notional value. Trong những tháng giá không vượt mức cố định, <b>không có thanh toán nào</b> phát sinh.</p>
+
+        <h4>3. Basis swap</h4>
+        <p>Thanh toán biến đổi dựa trên <b>chênh lệch giá giữa hai commodity khác nhau</b>. Thường một loại có futures thanh khoản (dùng để hedge), loại còn lại (mà bên mua swap thực sự sử dụng trong sản xuất) không có futures thanh khoản. Vì biến động giá của hai commodity này không tương quan hoàn hảo, "basis" (chênh lệch) giữa chúng thay đổi theo thời gian. Kết hợp hedge bằng futures thanh khoản + basis swap giúp bên mua hedge trọn vẹn rủi ro giá của input kém thanh khoản.</p>
+
+        <h4>4. Commodity volatility swap & variance swap</h4>
+        <p><b>Volatility swap:</b> yếu tố cơ sở là độ biến động (volatility) giá commodity. Nếu volatility thực tế cao hơn mức kỳ vọng quy định trong swap, bên <b>mua volatility</b> nhận thanh toán; nếu thấp hơn, bên <b>bán volatility</b> nhận thanh toán.</p>
+        <p><b>Variance swap:</b> tương tự nhưng dựa trên <b>phương sai (variance)</b> của mức giá thay vì độ lệch chuẩn. Bên mua nhận thanh toán nếu phương sai thực tế vượt phương sai cố định thiết lập lúc đầu; bên bán nhận thanh toán nếu phương sai thực tế thấp hơn.</p>
+      </div>
+      <div id="deck-i" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== LOS j ===== -->
+    <div class="view" id="view-j">
+      <div class="los-tag">LOS 30.j</div>
+      <h2 class="section-title">Cấu trúc Commodity Index ảnh hưởng đến lợi nhuận Index</h2>
+      <p class="section-sub">Describe how the construction of commodity indexes affects index returns.</p>
+      <div class="theory">
+        <p>Có nhiều commodity index được công bố. Để hữu ích nhất, một index nên "investable" — nghĩa là nhà đầu tư có thể tái lập (replicate) index đó bằng các futures contract thanh khoản sẵn có.</p>
+        <p>Các commodity index khác nhau ở <b>4 khía cạnh</b>:</p>
+        <table class="dtable">
+          <tr><th>Yếu tố</th><th>Chi tiết</th></tr>
+          <tr><td><b>Commodity nào được đưa vào</b></td><td>Xác định phạm vi exposure của index.</td></tr>
+          <tr><td><b>Weighting</b></td><td>Equal-weighted, hoặc theo một yếu tố nào đó — ví dụ: giá trị sản lượng toàn cầu (production value). Một index weighted theo production value sẽ có tỷ trọng nghiêng nhiều về <b>Energy</b> hơn so với livestock hay softs, do giá trị sản lượng energy toàn cầu lớn hơn nhiều.</td></tr>
+          <tr><td><b>Phương pháp roll</b></td><td><i>Passive:</i> đơn giản roll hợp đồng sắp đáo hạn sang hợp đồng near-month mỗi tháng. <i>Active:</i> tối đa hóa roll return bằng cách chọn các hợp đồng xa hơn có mức backwardation lớn nhất hoặc contango nhỏ nhất.</td></tr>
+          <tr><td><b>Rebalancing</b></td><td>Tần suất rebalancing tỷ trọng danh mục cũng ảnh hưởng đến lợi nhuận index.</td></tr>
+        </table>
+
+        <p>Về rebalancing: rebalancing sẽ làm <b>giảm</b> lợi nhuận khi giá đang trong xu hướng (trending) rõ rệt, nhưng làm <b>tăng</b> lợi nhuận khi biến động giá mang tính giằng co và mean-reverting (choppy). Vì vậy, hành vi giá xuyên suốt các kỳ rebalancing sẽ ảnh hưởng đến lợi nhuận. Nếu giá một commodity giằng co trong ngắn hạn nhưng có xu hướng rõ ràng trong dài hạn, rebalancing thường xuyên có thể bắt được lợi nhuận từ mean-reversion ngắn hạn nhưng lại đánh mất một phần lợi nhuận từ xu hướng dài hạn.</p>
+
+        <div class="callout">Không có phương pháp xây dựng index nào vượt trội một cách nhất quán so với phương pháp khác. Sự khác biệt về phương pháp <i>có</i> tạo ra chênh lệch lợi nhuận, ít nhất là trong ngắn hạn. Trong dài hạn, chênh lệch giữa cơ cấu thành phần/tỷ trọng của các index khác nhau sẽ tạo ra chênh lệch lợi nhuận, do một số commodity outperform commodity khác theo thời gian. Tương quan <b>giữa</b> các commodity index với nhau tương đối <b>cao</b>; tương quan giữa commodity index với lợi nhuận cổ phiếu/trái phiếu tương đối <b>thấp</b>.</div>
+      </div>
+      <div id="deck-j" class="deck-wrap"></div>
+    </div>
+
+    <!-- ===== REVIEW ===== -->
+    <div class="view" id="view-review">
+      <div class="los-tag">Ôn tập ngắt quãng</div>
+      <h2 class="section-title">Spaced Repetition Review</h2>
+      <p class="section-sub">Hệ thống dùng thuật toán Leitner đơn giản: mỗi thẻ có 5 "hộp" (box). Bạn nhớ tốt → thẻ lên hộp cao hơn → khoảng cách lần ôn tiếp theo dài hơn. Bạn quên → thẻ về hộp 1 → ôn lại ngay.</p>
+      <div id="review-area"></div>
+    </div>
+
+    <!-- ===== QUIZ ===== -->
+    <div class="view" id="view-quiz">
+      <div class="los-tag">Kiểm tra tổng hợp</div>
+      <h2 class="section-title">Trắc nghiệm tổng hợp toàn bài</h2>
+      <p class="section-sub">Câu hỏi dạng vận dụng, mô phỏng phong cách item-set của CFA Level 2. Chọn số câu để bắt đầu.</p>
+      <div id="quiz-area"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   DATA — FLASHCARDS
+   ========================================================= */
+const FLASHCARDS = {
+  a: [
+    {id:'a1', q:`Kể tên 6 nhóm ngành hàng hóa (commodity sectors).`, a:`Energy, Industrial metals, Grains, Livestock, Precious metals, Softs.`},
+    {id:'a2', q:`4 công cụ của fundamental analysis dùng để dự báo cú sốc cung–cầu hàng hóa là gì?`, a:`Announcements, Component analysis (phân tích từng thành phần cấu thành, VD: jet fuel/diesel/gasoline là component của crude oil), Timing issues (mùa vụ, logistics), Macro (lạm phát, lãi suất).`},
+    {id:'a3', q:`Vì sao dầu "light and sweet" bán giá premium so với dầu "heavy/sour"?`, a:`Light (độ nhớt thấp) và sweet (ít sulfur) tốn ít chi phí lọc hơn → rẻ hơn để refine → bán giá cao hơn.`},
+    {id:'a4', q:`4 yếu tố nào kìm hãm tăng trưởng nhu cầu dầu dù kinh tế toàn cầu tăng trưởng?`, a:`Cải thiện công nghệ lọc dầu, động cơ hiệu quả hơn, năng lượng thay thế hiệu quả hơn, quy định môi trường khắt khe hơn (giảm cung, tăng chi phí sản xuất).`},
+    {id:'a5', q:`Vì sao chi phí vận chuyển natural gas cao hơn crude oil?`, a:`Crude oil vận chuyển bằng tàu chi phí thấp; natural gas phải được hóa lỏng (cooled to liquid state) mới vận chuyển bằng tàu — chi phí cao hơn đáng kể.`},
+    {id:'a6', q:`Phân biệt "associated gas" và "unassociated gas".`, a:`Associated gas: sinh ra cùng với khai thác crude oil → nguồn cung gắn với sản lượng dầu. Unassociated gas: từ mỏ không có dầu → nguồn cung độc lập.`},
+    {id:'a7', q:`Nhu cầu industrial metals gắn chủ yếu với yếu tố nào?`, a:`Tăng trưởng GDP và business cycle, do dùng nhiều trong xây dựng và sản xuất.`},
+    {id:'a8', q:`Cơ chế nào khiến giá livestock có tính chu kỳ khi giá ngũ cốc tăng?`, a:`Giá ngũ cốc (thức ăn) tăng → chi phí nuôi tăng → tỷ lệ giết mổ tăng (giảm đàn) → giá giảm ngắn hạn → đàn bị thu hẹp → giá tăng trở lại sau đó.`},
+    {id:'a9', q:`Vàng (gold) được xem là công cụ gì?`, a:`Store of value / hedge chống lại rủi ro lạm phát khi nắm giữ tiền mặt.`},
+    {id:'a10', q:`Softs gồm những hàng hóa nào, và rủi ro chính là gì?`, a:`Coffee, sugar, cocoa, cotton — trồng ở vùng khí hậu ấm; rủi ro chính: thời tiết và dịch bệnh.`}
+  ],
+  b: [
+    {id:'b1', q:`Liệt kê các bước trong vòng đời của crude oil từ sản xuất đến tiêu dùng.`, a:`Khoan giếng → khai thác → vận chuyển → lưu trữ (vài tháng) → refine thành gasoline/heating oil/diesel/jet fuel → vận chuyển đến người tiêu dùng.`},
+    {id:'b2', q:`Vì sao industrial metals có thể dùng futures giao hàng theo tháng?`, a:`Vì lưu trữ được vô thời hạn và dòng sản lượng đều đặn (regular flow of output).`},
+    {id:'b3', q:`Rủi ro gì phát sinh khi dự án khai thác/luyện kim quy mô lớn cần nhiều năm xây dựng?`, a:`Công suất mới có thể đi vào hoạt động đúng lúc hoặc sau đỉnh chu kỳ kinh tế → dư cung; nhà sản xuất cũng ngại giảm sản lượng khi giá giảm vì hoạt động hiệu quả nhất khi gần công suất tối đa.`},
+    {id:'b4', q:`So sánh thời gian nuôi trước giết mổ của gà, heo, bò.`, a:`Gà: vài tuần. Heo: khoảng 6 tháng. Bò: vài năm.`},
+    {id:'b5', q:`Vì sao futures grains có ngày đáo hạn trùng thời điểm thu hoạch?`, a:`Vì sản xuất mang tính mùa vụ; gieo trồng trước thu hoạch 5+ tháng nên sản lượng được ấn định theo kỳ vọng nhu cầu tại thời điểm gieo trồng.`},
+    {id:'b6', q:`Vì sao coffee có độ trễ lớn giữa đầu tư mở rộng công suất và tăng nguồn cung?`, a:`Cây cà phê cần tới 4 năm để cho quả.`},
+    {id:'b7', q:`Hai loại hạt cà phê chính là gì, loại nào cao cấp hơn?`, a:`Robusta và Arabica; Arabica cao cấp (premium) hơn.`}
+  ],
+  c: [
+    {id:'c1', q:`Khác biệt cốt lõi trong định giá commodities so với stocks/bonds là gì?`, a:`Stocks/bonds là tài sản tài chính, định giá bằng PV dòng tiền kỳ vọng (cổ tức, lãi coupon). Commodities là tài sản vật chất, không tạo dòng tiền, có thể phát sinh chi phí lưu kho & vận chuyển.`},
+    {id:'c2', q:`Giá spot của một commodity có thể được xem là gì về mặt lý thuyết định giá?`, a:`Giá trị chiết khấu (discounted value) của giá bán kỳ vọng tại một thời điểm tương lai.`},
+    {id:'c3', q:`Chi phí lưu kho ảnh hưởng thế nào đến futures price theo kỳ hạn?`, a:`Có xu hướng khiến forward/futures price cao hơn khi ngày đáo hạn càng xa trong tương lai.`}
+  ],
+  d: [
+    {id:'d1', q:`Kể tên các nhóm người tham gia thị trường futures hàng hóa.`, a:`Hedgers, traders & investors (informed investors + arbitrageurs), speculators, exchanges, analysts, regulators.`},
+    {id:'d2', q:`Câu "hedgers do in the futures market what they must do in the future" nghĩa là gì? Cho ví dụ.`, a:`Hedger dùng futures để làm trước điều họ sẽ phải làm trong tương lai thực tế. VD: nông dân lúa mì sẽ phải BÁN sau thu hoạch → bán (short) futures ngay để hedge. Nhà máy xay bột sẽ phải MUA lúa mì → mua (long) futures để hedge.`},
+    {id:'d3', q:`Nông dân trồng ngô nên long hay short futures ngô để hedge? Người chăn nuôi bò (mua ngô làm thức ăn) thì sao?`, a:`Nông dân ngô: short (bán) futures ngô. Người chăn nuôi bò: long (mua) futures ngô.`},
+    {id:'d4', q:`Speculators kiếm lợi nhuận bằng 2 cách nào?`, a:`(1) Khai thác lợi thế thông tin để giao dịch có lời trước hedgers; (2) Cung cấp thanh khoản — mua khi short hedgers bán, bán khi long hedgers mua.`},
+    {id:'d5', q:`Arbitrageur làm gì khi chênh lệch spot–futures QUÁ LỚN so với chi phí lưu kho thực?`, a:`Mua và lưu trữ commodity vật lý, đồng thời bán (short) futures ở mức giá (quá cao) đó.`},
+    {id:'d6', q:`Arbitrageur làm gì khi chênh lệch spot–futures QUÁ NHỎ so với chi phí lưu kho thực?`, a:`"Không lưu trữ" — bán ra từ tồn kho của mình và long futures, sau đó bổ sung lại tồn kho ở ngày đáo hạn tương lai.`},
+    {id:'d7', q:`Cơ quan quản lý thị trường hàng hóa tại Mỹ tên gì (viết tắt)?`, a:`CFTC — Commodities Futures Trading Commission.`}
+  ],
+  e: [
+    {id:'e1', q:`Công thức tính basis là gì?`, a:`Basis = Giá spot − Giá futures.`},
+    {id:'e2', q:`Calendar spread được tính như thế nào?`, a:`Calendar spread = Giá futures (kỳ hạn gần) − Giá futures (kỳ hạn xa).`},
+    {id:'e3', q:`Thị trường contango: futures price theo thời gian ra sao, và basis/calendar spread mang dấu gì?`, a:`Futures price cao hơn khi đáo hạn càng xa → basis ÂM, calendar spread ÂM.`},
+    {id:'e4', q:`Thị trường backwardation: futures price theo thời gian ra sao, và basis/calendar spread mang dấu gì?`, a:`Futures price thấp hơn khi đáo hạn càng xa → basis DƯƠNG, calendar spread DƯƠNG.`},
+    {id:'e5', q:`Vì sao vị thế long futures có "roll return" dương khi thị trường backwardation?`, a:`Vì futures price hội tụ (converge) lên giá spot theo thời gian khi tiến gần đáo hạn — tạo thành phần lợi nhuận dương.`}
+  ],
+  f: [
+    {id:'f1', q:`Insurance Theory (Keynes) dựa trên hành vi của ai, và dự đoán trạng thái "bình thường" nào?`, a:`Dựa trên producers bán futures để hedge, đẩy futures price XUỐNG dưới spot, tạo lợi nhuận cho speculators mua futures ("phí bảo hiểm"). Dự đoán "normal backwardation".`},
+    {id:'f2', q:`2 điểm yếu thực nghiệm của Insurance Theory là gì?`, a:`(1) Ở thị trường backwardation thực sự, người mua futures không thực sự nhận lợi nhuận vượt trội như dự đoán. (2) Nhiều thị trường lại ở contango, không phải backwardation.`},
+    {id:'f3', q:`Hedging Pressure Hypothesis bổ sung điều gì vào Insurance Theory?`, a:`Bổ sung hành vi hedging của NGƯỜI TIÊU DÙNG/SỬ DỤNG — VD: công ty làm bánh long futures lúa mì để hedge giá bột đầu vào.`},
+    {id:'f4', q:`Theo Hedging Pressure Hypothesis, khi nào thị trường backwardation, khi nào contango?`, a:`Producers' hedging thắng thế (bán nhiều) → backwardation. Users' hedging thắng thế (mua nhiều) → contango.`},
+    {id:'f5', q:`Nêu 2 điểm yếu của Hedging Pressure Hypothesis.`, a:`(1) Producers đối mặt rủi ro giá tập trung hơn nhiều so với consumers. (2) Cả hai bên đều có thể là speculator; "hedging pressure" không quan sát được nên không kiểm định trực tiếp được.`},
+    {id:'f6', q:`Viết công thức của Theory of Storage.`, a:`Futures price = Spot price + Storage cost − Convenience yield.`},
+    {id:'f7', q:`Convenience yield là gì, và khi nào tăng cao?`, a:`Lợi ích của việc nắm giữ tồn kho vật chất sẵn có. Tăng cao khi tồn kho vật chất thấp và xác suất thiếu hụt nguồn cung cao.`},
+    {id:'f8', q:`Theo Theory of Storage: Storage cost > Convenience yield → trạng thái gì? Ngược lại?`, a:`Storage cost > Convenience yield → futures > spot → CONTANGO. Convenience yield > Storage cost → spot > futures → BACKWARDATION.`}
+  ],
+  g: [
+    {id:'g1', q:`3 thành phần của total return trên vị thế futures hàng hóa fully collateralized là gì?`, a:`Collateral return, Price return (spot yield), Roll return (roll yield).`},
+    {id:'g2', q:`"Fully collateralized" futures position nghĩa là gì?`, a:`Nhà đầu tư đã ký quỹ tiền mặt/chứng khoán có giá trị bằng đúng notional value (giá × quy mô hợp đồng) của các futures đang nắm giữ.`},
+    {id:'g3', q:`Collateral return được tính thế nào nếu tài sản thế chấp là T-bills?`, a:`Bằng đúng holding period yield của T-bills đó.`},
+    {id:'g4', q:`Viết công thức price return (spot yield).`, a:`Price return = (Giá hiện tại − Giá trước đó) / Giá trước đó.`},
+    {id:'g5', q:`Viết công thức roll return.`, a:`Roll return = (Giá hợp đồng sắp đáo hạn − Giá hợp đồng mới) / Giá hợp đồng sắp đáo hạn.`},
+    {id:'g6', q:`Vì sao nhà đầu tư cần "roll over" vị thế futures?`, a:`Vì futures contract có ngày đáo hạn; để duy trì vị thế, phải đóng hợp đồng sắp đáo hạn và mở hợp đồng mới xa hạn hơn.`}
+  ],
+  h: [
+    {id:'h1', q:`Roll return dương khi đường cong futures ở trạng thái nào? Âm khi nào?`, a:`Dương khi BACKWARDATION. Âm khi CONTANGO.`},
+    {id:'h2', q:`[Tính toán] Corn tháng 7 ở 397 cents/bushel, roll sang tháng 11 ở 406 cents/bushel. Tính roll return.`, a:`(397 − 406)/397 = −2.27%. Âm — vì thị trường contango.`},
+    {id:'h3', q:`[Tính toán] Natural gas tháng 7 ở 2.35, roll sang tháng 8 ở 2.22. Tính roll return.`, a:`(2.35 − 2.22)/2.35 = +5.53%. Dương — thị trường backwardation.`},
+    {id:'h4', q:`Khi backwardation, số hợp đồng cần long để giữ nguyên $ exposure thay đổi ra sao khi roll?`, a:`Tăng lên — vì giá hợp đồng mới thấp hơn, cần MUA NHIỀU hợp đồng hơn để giữ nguyên giá trị exposure (VD: từ 4,255 lên 4,504 hợp đồng).`},
+    {id:'h5', q:`[Tính toán] Natural gas chiếm 8.5% danh mục, roll return 5.53%. Đóng góp vào lợi nhuận danh mục?`, a:`0.085 × 5.53% = 0.47%.`}
+  ],
+  i: [
+    {id:'i1', q:`Trong total return swap, bên long nhận và trả gì mỗi kỳ?`, a:`Nhận: total return của futures price commodity CỘNG lợi tức trên collateral. Trả: một khoản fixed payment đã thỏa thuận.`},
+    {id:'i2', q:`[Tính toán] Total return swap notional $10 triệu, long trả 25bp/tháng, nhận total return WTI. Tháng đầu WTI +1.45%. Long nhận ròng bao nhiêu?`, a:`(0.0145 − 0.0025) × $10 triệu = $120,000.`},
+    {id:'i3', q:`[Tính toán] Cùng swap trên, tháng sau WTI −2.14%. Long phải trả ròng bao nhiêu?`, a:`(−0.0214 − 0.0025) × $10 triệu = −$239,000, tức phải trả $239,000 cho short.`},
+    {id:'i4', q:`Excess return swap khác total return swap ở cách thanh toán nào?`, a:`Bên mua trả MỘT lần lúc khởi tạo; sau đó chỉ nhận thanh toán định kỳ = % giá commodity VƯỢT mức benchmark × notional; nếu không vượt, không có thanh toán kỳ đó.`},
+    {id:'i5', q:`Basis swap dùng để làm gì, dựa trên chênh lệch nào?`, a:`Thanh toán biến đổi dựa trên chênh lệch giá GIỮA HAI commodity (một có futures thanh khoản, một là input thực tế không có futures thanh khoản) — kết hợp futures hedge + basis swap để hedge trọn vẹn.`},
+    {id:'i6', q:`Trong commodity volatility swap, ai nhận thanh toán khi volatility thực tế CAO hơn mức kỳ vọng?`, a:`Bên MUA volatility (volatility buyer).`},
+    {id:'i7', q:`Variance swap khác volatility swap ở yếu tố cơ sở nào?`, a:`Volatility swap dựa trên độ biến động (volatility); variance swap dựa trên phương sai (variance) của mức giá.`}
+  ],
+  j: [
+    {id:'j1', q:`4 yếu tố khiến các commodity index khác nhau về cấu trúc?`, a:`(1) Commodity nào được đưa vào, (2) Weighting, (3) Phương pháp roll hợp đồng, (4) Phương pháp/tần suất rebalancing.`},
+    {id:'j2', q:`Index weighted theo giá trị sản lượng toàn cầu (production value) sẽ nghiêng tỷ trọng về sector nào?`, a:`Energy — do giá trị sản lượng toàn cầu lớn hơn nhiều so với livestock hay softs.`},
+    {id:'j3', q:`So sánh roll thụ động (passive) và chủ động (active) trong xây dựng index.`, a:`Passive: roll hợp đồng sắp đáo hạn sang near-month mỗi tháng. Active: chọn hợp đồng xa hơn có backwardation lớn nhất/contango nhỏ nhất để tối đa hóa roll return.`},
+    {id:'j4', q:`Rebalancing thường xuyên TĂNG hay GIẢM lợi nhuận trong thị trường trending? Còn thị trường choppy/mean-reverting?`, a:`Trending: GIẢM lợi nhuận. Choppy/mean-reverting: TĂNG lợi nhuận.`},
+    {id:'j5', q:`Điều kiện nào khiến một commodity index được xem là "investable"?`, a:`Nhà đầu tư có thể tái lập (replicate) index bằng các futures contract thanh khoản sẵn có.`},
+    {id:'j6', q:`Tương quan giữa các commodity index với nhau, và giữa commodity index với cổ phiếu/trái phiếu?`, a:`Giữa các commodity index: tương đối CAO. Giữa commodity index và cổ phiếu/trái phiếu: tương đối THẤP.`}
+  ]
+};
+const ALL_CARDS = Object.values(FLASHCARDS).flat();
+
+/* =========================================================
+   DATA — QUIZ (MCQ)
+   ========================================================= */
+const QUIZ = [
+  {id:'q1', section:'a', q:`Một hàng hóa X có nhu cầu tăng rõ rệt cả vào mùa đông (sưởi ấm) lẫn mùa hè (làm mát/phát điện). X nhiều khả năng là:`, opts:[`Industrial metals`,`Natural gas`,`Precious metals`,`Softs`], correct:1, exp:`Natural gas có tính mùa vụ rõ nét hơn crude oil: mùa đông tăng nhu cầu sưởi, mùa hè tăng nhu cầu làm mát/phát điện.`},
+  {id:'q2', section:'a', q:`Phân tích riêng nhu cầu jet fuel, diesel, gasoline để dự báo tổng nhu cầu crude oil là ví dụ của công cụ nào?`, opts:[`Announcements`,`Component analysis`,`Timing issues`,`Macro analysis`], correct:1, exp:`Đây chính là component analysis — phân tích từng thành phần cấu thành nhóm hàng hóa lớn hơn.`},
+  {id:'q3', section:'b', q:`Đặc điểm nào KHÔNG đúng với vòng đời industrial metals?`, opts:[`Có thể lưu trữ vô thời hạn`,`Futures thường giao hàng theo tháng`,`Rủi ro chính là thời tiết theo mùa`,`Sản xuất có economies of scale với chi phí cố định cao`], correct:2, exp:`Rủi ro thời tiết đặc trưng cho grains/livestock/softs, không phải industrial metals.`},
+  {id:'q4', section:'c', q:`Điểm khác biệt cơ bản nhất trong định giá commodities so với cổ phiếu/trái phiếu là gì?`, opts:[`Commodities có beta cao hơn`,`Commodities không tạo dòng tiền và có thể phát sinh chi phí lưu kho`,`Commodities giao dịch trên sàn OTC`,`Commodities có thanh khoản thấp hơn`], correct:1, exp:`Stocks/bonds định giá bằng PV dòng tiền; commodities là tài sản vật chất không tạo thu nhập, có chi phí lưu kho/vận chuyển.`},
+  {id:'q5', section:'d', q:`Một nhà đầu tư mua bạc vật chất, lưu kho, và bán futures vì chênh lệch spot–futures lớn hơn nhiều so với chi phí lưu kho thực. Đây là hành vi của:`, opts:[`Hedger`,`Speculator cung cấp thanh khoản`,`Arbitrageur`,`Regulator`], correct:2, exp:`Đây đúng là hành vi arbitrage: khai thác chênh lệch spot–futures vượt quá chi phí lưu kho thực tế.`},
+  {id:'q6', section:'d', q:`Một công ty sản xuất bánh mì mua futures lúa mì để cố định chi phí đầu vào tương lai. Đây là ví dụ về:`, opts:[`Speculation`,`Hedging (long hedge)`,`Arbitrage`,`Basis trading`], correct:1, exp:`Công ty đang "làm trước điều họ phải làm trong tương lai" (mua lúa mì) — đây là long hedge.`},
+  {id:'q7', section:'e', q:`Nếu futures kỳ hạn 6 tháng thấp hơn futures kỳ hạn 3 tháng, thị trường đang ở trạng thái nào và calendar spread mang dấu gì?`, opts:[`Contango, dương`,`Contango, âm`,`Backwardation, dương`,`Backwardation, âm`], correct:2, exp:`Calendar spread = giá gần − giá xa = 3mo − 6mo > 0 (dương) → khớp với định nghĩa backwardation.`},
+  {id:'q8', section:'f', q:`Lý thuyết nào cho rằng "normal backwardation" xảy ra vì producers bán futures để giảm rủi ro giá, tạo lợi nhuận cho speculators mua futures như phần thưởng gánh rủi ro?`, opts:[`Theory of Storage`,`Hedging Pressure Hypothesis`,`Insurance Theory`,`Efficient Market Hypothesis`], correct:2, exp:`Đây chính xác là luận điểm của Insurance Theory (Keynes).`},
+  {id:'q9', section:'f', q:`Điểm yếu chính khiến Hedging Pressure Hypothesis khó kiểm định thực nghiệm là gì?`, opts:[`Dữ liệu giá futures không công khai`,`Hedging pressure không quan sát được trực tiếp`,`Producers không bao giờ hedge`,`Speculators không tồn tại trên thực tế`], correct:1, exp:`"Hedging pressure" là đại lượng không quan sát được, nên không thể kiểm định trực tiếp giả thuyết.`},
+  {id:'q10', section:'f', q:`Theo Theory of Storage, khi tồn kho vật chất RẤT THẤP và rủi ro thiếu hụt cao, convenience yield sẽ:`, opts:[`Giảm, đẩy thị trường vào contango`,`Tăng, đẩy thị trường vào backwardation`,`Không đổi`,`Bằng 0`], correct:1, exp:`Tồn kho thấp + rủi ro thiếu hụt cao → convenience yield cao → spot > futures → backwardation.`},
+  {id:'q11', section:'g', q:`Một nhà đầu tư long futures dầu, ký quỹ đầy đủ bằng T-bills. Lợi tức từ T-bills thuộc thành phần lợi nhuận nào?`, opts:[`Price return`,`Roll return`,`Collateral return`,`Basis return`], correct:2, exp:`Lợi tức trên tài sản ký quỹ (T-bills) chính là collateral return.`},
+  {id:'q12', section:'h', q:`Futures gạo tháng 3 ở 12.00, roll sang futures tháng 6 ở 11.70. Roll return là bao nhiêu và thị trường đang ở trạng thái gì?`, opts:[`+2.5%, backwardation`,`−2.5%, contango`,`+2.4%, contango`,`−2.4%, backwardation`], correct:0, exp:`(12.00 − 11.70)/12.00 = +2.5% — dương nên thị trường đang backwardation.`},
+  {id:'q13', section:'i', q:`Trong excess return swap, nếu giá commodity trong kỳ KHÔNG vượt mức benchmark, điều gì xảy ra?`, opts:[`Bên mua phải trả thêm`,`Bên bán phải trả cho bên mua`,`Không có thanh toán nào trong kỳ đó`,`Swap tự động chấm dứt`], correct:2, exp:`Excess return swap chỉ thanh toán khi giá vượt benchmark; nếu không vượt, không có thanh toán kỳ đó.`},
+  {id:'q14', section:'i', q:`Một công ty dùng input không có futures thanh khoản, nhưng tương quan giá với một commodity có futures thanh khoản. Công cụ nào phù hợp nhất để hedge trọn vẹn?`, opts:[`Total return swap đơn thuần`,`Kết hợp futures thanh khoản + basis swap`,`Excess return swap`,`Volatility swap`], correct:1, exp:`Đây chính xác là ứng dụng kinh điển của basis swap kết hợp futures hedge.`},
+  {id:'q15', section:'j', q:`Để tối đa hóa roll return khi xây dựng commodity index, nên dùng phương pháp roll nào?`, opts:[`Passive — roll sang near-month mỗi tháng`,`Active — chọn hợp đồng có backwardation lớn nhất/contango nhỏ nhất`,`Roll ngẫu nhiên`,`Không roll, giữ đến đáo hạn`], correct:1, exp:`Active roll strategy chọn các hợp đồng tối ưu hóa roll return.`},
+  {id:'q16', section:'j', q:`Thị trường có giá giằng co ngắn hạn (choppy) nhưng có xu hướng tăng dài hạn. Rebalancing thường xuyên sẽ:`, opts:[`Luôn làm tăng lợi nhuận`,`Bắt lợi nhuận mean-reversion ngắn hạn nhưng đánh mất một phần lợi nhuận từ xu hướng dài hạn`,`Không ảnh hưởng gì đến lợi nhuận`,`Luôn làm giảm lợi nhuận`], correct:1, exp:`Rebalancing giúp trong giai đoạn choppy nhưng lại "cắt" bớt lợi nhuận khi thị trường đang trend dài hạn.`},
+  {id:'q17', section:'a', q:`Điều gì xảy ra với giá livestock trong NGẮN HẠN khi giá ngũ cốc tăng mạnh?`, opts:[`Tăng ngay do chi phí đầu vào cao hơn`,`Giảm, do tỷ lệ giết mổ tăng (giảm đàn)`,`Không đổi`,`Giảm do nhu cầu thịt giảm`], correct:1, exp:`Giá thức ăn tăng → giết mổ nhiều hơn (giảm đàn nhanh) → cung thịt ngắn hạn tăng → giá giảm trong ngắn hạn.`},
+  {id:'q18', section:'f', q:`Thị trường ở contango kéo dài nhiều tháng. Theo Insurance Theory của Keynes, hiện tượng này:`, opts:[`Được lý thuyết giải thích tốt`,`Mâu thuẫn với dự đoán "normal backwardation" của lý thuyết`,`Chứng minh lý thuyết hoàn toàn đúng`,`Không liên quan gì đến lý thuyết`], correct:1, exp:`Đây chính là một trong hai điểm yếu thực nghiệm của Insurance Theory.`},
+  {id:'q19', section:'g', q:`Giá spot dầu tuần trước $80, tuần này $82. Price return tuần này là bao nhiêu?`, opts:[`2.5%`,`2.0%`,`−2.5%`,`2.44%`], correct:0, exp:`(82 − 80)/80 = 2.5%.`}
+];
+
+/* =========================================================
+   STATE & PERSISTENCE
+   ========================================================= */
+let state = { cardProgress:{}, quizHistory:[] };
+const BOX_INTERVAL_DAYS = [0,0,1,3,7,14];
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+async function loadState(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get('commodities-study-state', false);
+      if(res && res.value){
+        const saved = JSON.parse(res.value);
+        state.cardProgress = saved.cardProgress || {};
+        state.quizHistory = saved.quizHistory || [];
+      }
+    }
+  }catch(e){ /* nothing saved yet — start fresh */ }
+}
+async function saveState(){
+  try{
+    if(window.storage){
+      await window.storage.set('commodities-study-state', JSON.stringify(state), false);
+    }
+  }catch(e){ console.error('Không lưu được tiến độ:', e); }
+}
+
+function isDue(cardId){
+  const p = state.cardProgress[cardId];
+  if(!p) return true;
+  return p.due <= todayStr();
+}
+function boxOf(cardId){ return (state.cardProgress[cardId] && state.cardProgress[cardId].box) || 0; }
+
+function gradeCard(cardId, grade){
+  let p = state.cardProgress[cardId] || {box:0, due: todayStr()};
+  if(grade==='forgot') p.box = 1;
+  else if(grade==='good') p.box = Math.min(5, (p.box||0)+1);
+  else if(grade==='easy') p.box = Math.min(5, (p.box||0)+2);
+  const days = BOX_INTERVAL_DAYS[p.box] ?? 0;
+  const d = new Date(); d.setDate(d.getDate()+days);
+  p.due = d.toISOString().slice(0,10);
+  state.cardProgress[cardId] = p;
+  saveState();
+  updateStatsBar();
+  updateNavDots();
+}
+
+function masteryPercent(){
+  if(!ALL_CARDS.length) return 0;
+  let n=0; ALL_CARDS.forEach(c=>{ if(boxOf(c.id)>=4) n++; });
+  return Math.round(n/ALL_CARDS.length*100);
+}
+function dueCount(){ return ALL_CARDS.filter(c=>isDue(c.id)).length; }
+function sectionMasteryState(sectionId){
+  const cards = FLASHCARDS[sectionId];
+  if(!cards) return 'none';
+  const started = cards.some(c=>boxOf(c.id)>0);
+  const mastered = cards.every(c=>boxOf(c.id)>=4);
+  if(mastered) return 'mastered';
+  if(started) return 'started';
+  return 'none';
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+function navigateTo(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-view="'+view+'"]').forEach(b=>b.classList.add('active'));
+  document.querySelector('.main').scrollTo({top:0, behavior:'instant'});
+  if(view==='review') renderReview();
+  if(view==='quiz') renderQuizSetup();
+}
+document.querySelectorAll('.nav-item[data-view]').forEach(btn=>{
+  btn.addEventListener('click', ()=> navigateTo(btn.getAttribute('data-view')) );
+});
+
+function updateStatsBar(){
+  document.getElementById('stat-mastery').textContent = masteryPercent()+'%';
+  document.getElementById('stat-due').textContent = dueCount();
+  document.getElementById('ov-cardcount').textContent = ALL_CARDS.length;
+  document.getElementById('ov-quizcount').textContent = QUIZ.length;
+  const heroFill = document.getElementById('hero-curve-fill');
+  const pct = masteryPercent()/100;
+  heroFill.style.strokeDashoffset = String(600 - 600*pct);
+}
+function updateNavDots(){
+  Object.keys(FLASHCARDS).forEach(sec=>{
+    const dot = document.getElementById('navdot-'+sec);
+    if(!dot) return;
+    dot.classList.remove('mastered','started');
+    const st = sectionMasteryState(sec);
+    if(st==='mastered') dot.classList.add('mastered');
+    else if(st==='started') dot.classList.add('started');
+  });
+}
+
+/* =========================================================
+   ROADMAP (overview)
+   ========================================================= */
+const ROADMAP_ITEMS = [
+  {id:'a', t:'Đặc điểm các nhóm hàng hóa'},
+  {id:'b', t:'Vòng đời sản xuất → tiêu dùng'},
+  {id:'c', t:'So sánh định giá với equities/bonds'},
+  {id:'d', t:'Người tham gia thị trường futures'},
+  {id:'e', t:'Quan hệ spot–futures (contango/backwardation)'},
+  {id:'f', t:'Ba lý thuyết về lợi nhuận futures'},
+  {id:'g', t:'Thành phần tổng lợi nhuận futures'},
+  {id:'h', t:'Roll return: contango vs backwardation'},
+  {id:'i', t:'Commodity swaps'},
+  {id:'j', t:'Cấu trúc commodity index'}
+];
+function renderRoadmap(){
+  const el = document.getElementById('roadmap');
+  el.innerHTML = ROADMAP_ITEMS.map(it=>{
+    const st = sectionMasteryState(it.id);
+    const label = st==='mastered' ? '✓ Đã thuộc' : st==='started' ? 'Đang ôn' : 'Chưa học';
+    return `<div class="roadmap-item" onclick="navigateTo('${it.id}')">
+      <span class="code">30.${it.id}</span><span class="t">${it.t}</span><span class="status">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+/* =========================================================
+   FLASHCARD BROWSER COMPONENT (reusable)
+   ========================================================= */
+function renderFlashcardBrowser(containerId, cardsList, opts){
+  opts = opts || {};
+  const container = document.getElementById(containerId);
+  if(!cardsList.length){
+    container.innerHTML = `<div class="empty-state"><div class="big">🎉</div>Không có thẻ nào đến hạn ôn ngay bây giờ.</div>`;
+    return;
+  }
+  let idx = 0;
+  let flipped = false;
+
+  function draw(){
+    const c = cardsList[idx];
+    flipped = false;
+    container.innerHTML = `
+      <div class="deck-head">
+        <div class="deck-progress">Thẻ ${idx+1} / ${cardsList.length} ${opts.showBox ? ' · box hiện tại: '+boxOf(c.id) : ''}</div>
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-ghost" id="fc-prev">← Trước</button>
+          <button class="btn btn-ghost" id="fc-next">Sau →</button>
+        </div>
+      </div>
+      <div class="flip-hint">Bấm vào thẻ để lật</div>
+      <div class="flashcard" id="fc-card">
+        <div class="flashcard-inner">
+          <div class="flashcard-face face-front"><span class="eyebrow">${c.id.toUpperCase()} · CÂU HỎI</span><div class="txt">${c.q}</div></div>
+          <div class="flashcard-face face-back"><div class="txt">${c.a}</div></div>
+        </div>
+      </div>
+      <div class="grade-row" id="fc-grades" style="visibility:hidden;">
+        <button class="btn btn-rust" data-g="forgot">😵 Chưa nhớ</button>
+        <button class="btn btn-ghost" data-g="good">🙂 Nhớ được</button>
+        <button class="btn btn-green" data-g="easy">😎 Dễ ợt</button>
+      </div>
+    `;
+    document.getElementById('fc-card').addEventListener('click', ()=>{
+      flipped = !flipped;
+      document.getElementById('fc-card').classList.toggle('flipped', flipped);
+      document.getElementById('fc-grades').style.visibility = flipped ? 'visible' : 'hidden';
+    });
+    document.getElementById('fc-prev').addEventListener('click', ()=>{ idx = (idx-1+cardsList.length)%cardsList.length; draw(); });
+    document.getElementById('fc-next').addEventListener('click', ()=>{ idx = (idx+1)%cardsList.length; draw(); });
+    document.querySelectorAll('#fc-grades [data-g]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        gradeCard(c.id, btn.getAttribute('data-g'));
+        if(idx < cardsList.length-1){ idx++; draw(); }
+        else{
+          container.innerHTML = `<div class="empty-state"><div class="big">🎉</div>Bạn đã ôn hết lượt này!<div class="btn-row" style="justify-content:center;"><button class="btn btn-primary" id="fc-restart">Ôn lại từ đầu</button></div></div>`;
+          document.getElementById('fc-restart').addEventListener('click', ()=>{ idx=0; draw(); });
+        }
+      });
+    });
+  }
+  draw();
+}
+
+/* Render per-section decks (all cards in that section, any time) */
+Object.keys(FLASHCARDS).forEach(sec=>{
+  const heading = document.createElement('div');
+  const target = document.getElementById('deck-'+sec);
+  target.innerHTML = `<h3>Ôn tập chủ động — LOS 30.${sec}</h3>`;
+  const holder = document.createElement('div');
+  holder.id = 'deck-holder-'+sec;
+  target.appendChild(holder);
+});
+function initSectionDecks(){
+  Object.keys(FLASHCARDS).forEach(sec=>{
+    renderFlashcardBrowser('deck-holder-'+sec, FLASHCARDS[sec], {showBox:true});
+  });
+}
+
+/* =========================================================
+   GLOBAL SPACED REVIEW
+   ========================================================= */
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function renderReview(){
+  const area = document.getElementById('review-area');
+  const due = shuffle(ALL_CARDS.filter(c=>isDue(c.id)));
+  if(!due.length){
+    area.innerHTML = `<div class="empty-state"><div class="big">✨</div>Không có thẻ nào đến hạn hôm nay — làm tốt lắm!
+      <div class="btn-row" style="justify-content:center;"><button class="btn btn-primary" id="review-all-btn">Ôn tất cả ${ALL_CARDS.length} thẻ ngay</button></div>
+    </div>`;
+    document.getElementById('review-all-btn').addEventListener('click', ()=>{
+      area.innerHTML = '<div id="review-deck"></div>';
+      renderFlashcardBrowser('review-deck', shuffle(ALL_CARDS), {showBox:true});
+    });
+    return;
+  }
+  area.innerHTML = `<p style="color:var(--text-muted); font-size:13.5px; margin-bottom:14px;">Có <b style="color:var(--gold-soft);">${due.length}</b> thẻ đến hạn ôn hôm nay.</p><div id="review-deck"></div>`;
+  renderFlashcardBrowser('review-deck', due, {showBox:true});
+}
+
+/* =========================================================
+   QUIZ
+   ========================================================= */
+let quizState = null;
+function renderQuizSetup(){
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="quiz-setup">
+      <button class="btn btn-primary" data-n="10">10 câu</button>
+      <button class="btn btn-primary" data-n="15">15 câu</button>
+      <button class="btn btn-primary" data-n="${QUIZ.length}">Tất cả (${QUIZ.length} câu)</button>
+    </div>
+    ${state.quizHistory.length ? `<p style="color:var(--text-dim); font-size:12.5px;">Lần gần nhất: <span class="quiz-score">${state.quizHistory[state.quizHistory.length-1].score}/${state.quizHistory[state.quizHistory.length-1].total}</span></p>` : ''}
+  `;
+  area.querySelectorAll('[data-n]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startQuiz(parseInt(btn.getAttribute('data-n'))) );
+  });
+}
+function startQuiz(n){
+  const pool = shuffle(QUIZ).slice(0, n);
+  quizState = { pool, idx:0, score:0, answered:false, bySection:{} };
+  renderQuizQuestion();
+}
+function renderQuizQuestion(){
+  const area = document.getElementById('quiz-area');
+  const {pool, idx, score} = quizState;
+  const q = pool[idx];
+  quizState.answered = false;
+  area.innerHTML = `
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/pool.length*100)}%;"></div></div>
+    <div class="quiz-card">
+      <div class="deck-progress" style="margin-bottom:10px;">Câu ${idx+1}/${pool.length} · Điểm hiện tại: <span class="quiz-score">${score}</span></div>
+      <div class="q-text">${q.q}</div>
+      <div id="quiz-opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+      <div id="quiz-exp"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="quiz-next" style="display:none;">Câu tiếp →</button></div>
+    </div>
+  `;
+  document.querySelectorAll('#quiz-opts .opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(quizState.answered) return;
+      quizState.answered = true;
+      const chosen = parseInt(btn.getAttribute('data-i'));
+      document.querySelectorAll('#quiz-opts .opt').forEach((b,i)=>{
+        b.disabled = true;
+        if(i===q.correct) b.classList.add('correct');
+        else if(i===chosen) b.classList.add('wrong');
+      });
+      if(chosen===q.correct) quizState.score++;
+      document.getElementById('quiz-exp').innerHTML = `<div class="quiz-exp"><b>${chosen===q.correct ? '✔ Chính xác.' : '✘ Chưa đúng.'}</b> ${q.exp}</div>`;
+      document.getElementById('quiz-next').style.display = 'inline-block';
+    });
+  });
+  document.getElementById('quiz-next').addEventListener('click', ()=>{
+    if(quizState.idx < quizState.pool.length-1){ quizState.idx++; renderQuizQuestion(); }
+    else finishQuiz();
+  });
+}
+function finishQuiz(){
+  const area = document.getElementById('quiz-area');
+  const {pool, score} = quizState;
+  const bySection = {};
+  pool.forEach((q,i)=>{ bySection[q.section] = bySection[q.section] || {c:0,t:0}; });
+  state.quizHistory.push({date: todayStr(), score, total: pool.length});
+  saveState();
+  const pct = Math.round(score/pool.length*100);
+  area.innerHTML = `
+    <div class="empty-state">
+      <div class="big">${pct>=70?'🏆':pct>=50?'👍':'📚'}</div>
+      <h3>Kết quả: <span class="quiz-score">${score}/${pool.length}</span> (${pct}%)</h3>
+      <p style="color:var(--text-muted); font-size:13.5px;">${pct>=70?'Rất tốt — mức này đã đạt ngưỡng CFAI mock (~70%).':'Quay lại phần Ôn tập ngắt quãng để củng cố những LOS còn yếu, rồi thử lại.'}</p>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn btn-primary" id="quiz-retry">Làm bài mới</button>
+      </div>
+    </div>`;
+  document.getElementById('quiz-retry').addEventListener('click', renderQuizSetup);
+}
+
+/* =========================================================
+   CURVE EXPLORER (LOS 30.e)
+   ========================================================= */
+function setCurveState(mode){
+  const path = document.getElementById('explorer-curve');
+  const btnC = document.getElementById('btn-contango');
+  const btnB = document.getElementById('btn-backwardation');
+  if(mode==='contango'){
+    path.setAttribute('d','M60 120 Q265 60 440 40');
+    path.setAttribute('stroke', '#B8563A');
+    document.getElementById('lbl-basis').textContent = 'Âm';
+    document.getElementById('lbl-basis').style.color = 'var(--rust-soft)';
+    document.getElementById('lbl-cspread').textContent = 'Âm';
+    document.getElementById('lbl-cspread').style.color = 'var(--rust-soft)';
+    document.getElementById('lbl-roll').textContent = 'Âm';
+    document.getElementById('lbl-roll').style.color = 'var(--rust-soft)';
+    btnC.style.outline = '2px solid var(--rust-soft)';
+    btnB.style.outline = 'none';
+  } else {
+    path.setAttribute('d','M60 40 Q265 60 440 120');
+    path.setAttribute('stroke', '#5B8C7B');
+    document.getElementById('lbl-basis').textContent = 'Dương';
+    document.getElementById('lbl-basis').style.color = 'var(--green-soft)';
+    document.getElementById('lbl-cspread').textContent = 'Dương';
+    document.getElementById('lbl-cspread').style.color = 'var(--green-soft)';
+    document.getElementById('lbl-roll').textContent = 'Dương';
+    document.getElementById('lbl-roll').style.color = 'var(--green-soft)';
+    btnB.style.outline = '2px solid var(--green-soft)';
+    btnC.style.outline = 'none';
+  }
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+async function init(){
+  await loadState();
+  renderRoadmap();
+  initSectionDecks();
+  updateStatsBar();
+  updateNavDots();
+  setTimeout(()=>{ document.getElementById('hero-curve-fill').style.strokeDashoffset = String(600 - 600*(masteryPercent()/100)); }, 200);
+}
+init();
+</script>
+</body>
+</html>
