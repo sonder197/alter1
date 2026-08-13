@@ -242,13 +242,7 @@
       <div class="stat-chip"><div class="num" id="stat-due">0</div><div class="lbl">Đến hạn ôn</div></div>
     </div>
 
-    <div id="account-panel" style="margin:-6px 0 16px; padding:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:10px;">
-      <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px;">Tài khoản</div>
-      <div id="account-email" style="font-size:13px; color:var(--text-muted); margin-bottom:9px;">Chưa đăng nhập</div>
-      <button class="btn btn-primary" id="login-btn" style="width:100%;">Đăng nhập Google</button>
-      <button class="btn btn-ghost" id="logout-btn" style="width:100%; margin-top:7px; display:none;">Đăng xuất</button>
-      <div id="sync-status" style="font-size:11px; color:var(--text-dim); margin-top:8px;">Chưa đồng bộ</div>
-    </div>
+    <div style="font-size:11px; color:var(--text-dim); margin:-8px 6px 16px;">Firebase: <span id="sync-status">Đang khởi tạo…</span></div>
 
     <button class="nav-item active" data-view="overview"><span class="dot"></span><span>Tổng quan</span></button>
 
@@ -619,31 +613,32 @@
    ========================================================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "alter1-f1cf5.firebaseapp.com",
-  projectId: "alter1-f1cf5",
   databaseURL: "https://alter1-f1cf5-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
-const auth = getAuth(firebaseApp);
-const googleProvider = new GoogleAuthProvider();
+const DEVICE_ID_KEY = "alter1-cfa-reading30-device-id";
 const LOCAL_CACHE_KEY = "alter1-cfa-reading30-state";
-let currentUser = null;
+
+function getDeviceId(){
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if(!id){
+    id = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : "d-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+
+const DEVICE_ID = getDeviceId();
+const FIREBASE_STATE_PATH = `users/${DEVICE_ID}/commoditiesStudy`;
 
 function firebaseStateRef(){
-  if(!currentUser) return null;
-  return ref(database, `users/${currentUser.uid}/commoditiesStudy`);
+  return ref(database, FIREBASE_STATE_PATH);
 }
 
 function setSyncStatus(message, ok=true){
@@ -801,12 +796,6 @@ function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 async function loadState(){
   const hadCache = loadCachedState();
-
-  if(!currentUser){
-    setSyncStatus(hadCache ? "Chưa đăng nhập · dùng cache" : "Chưa đăng nhập", false);
-    return;
-  }
-
   setSyncStatus(hadCache ? "Đang kiểm tra Firebase…" : "Đang đồng bộ…");
 
   try{
@@ -817,7 +806,7 @@ async function loadState(){
       state.cardProgress = saved.cardProgress || {};
       state.quizHistory = Array.isArray(saved.quizHistory) ? saved.quizHistory : [];
       cacheState();
-      setSyncStatus("Đã đồng bộ Firebase");
+      setSyncStatus("Firebase đã đồng bộ");
     }else{
       await set(firebaseStateRef(), {
         cardProgress: state.cardProgress,
@@ -825,7 +814,7 @@ async function loadState(){
         updatedAt: new Date().toISOString()
       });
       cacheState();
-      setSyncStatus("Đã tải tiến độ lên Firebase");
+      setSyncStatus("Đã tạo dữ liệu Firebase");
     }
   }catch(e){
     console.error("Không tải được Firebase:", e);
@@ -835,11 +824,6 @@ async function loadState(){
 
 async function saveState(){
   cacheState();
-
-  if(!currentUser){
-    setSyncStatus("Chưa đăng nhập · chỉ lưu trên máy", false);
-    return;
-  }
 
   try{
     await set(firebaseStateRef(), {
@@ -1163,66 +1147,14 @@ window.navigateTo = navigateTo;
 window.setCurveState = setCurveState;
 
 /* =========================================================
-   AUTH + INIT
+   INIT
    ========================================================= */
-function updateAccountUI(){
-  const email = document.getElementById('account-email');
-  const loginBtn = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  if(!email || !loginBtn || !logoutBtn) return;
-
-  if(currentUser){
-    email.textContent = currentUser.email || 'Google account';
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'block';
-  }else{
-    email.textContent = 'Chưa đăng nhập';
-    loginBtn.style.display = 'block';
-    logoutBtn.style.display = 'none';
-  }
-}
-
-document.getElementById('login-btn').addEventListener('click', async ()=>{
-  try{
-    setSyncStatus('Đang mở đăng nhập Google…');
-    await signInWithPopup(auth, googleProvider);
-  }catch(e){
-    console.error('Đăng nhập Google thất bại:', e);
-    setSyncStatus('Đăng nhập thất bại', false);
-  }
-});
-
-document.getElementById('logout-btn').addEventListener('click', async ()=>{
-  try{
-    await signOut(auth);
-    setSyncStatus('Đã đăng xuất', false);
-  }catch(e){
-    console.error('Đăng xuất thất bại:', e);
-  }
-});
-
-onAuthStateChanged(auth, async (user)=>{
-  currentUser = user;
-  updateAccountUI();
-
-  if(user){
-    await loadState();
-  }else{
-    loadCachedState();
-    setSyncStatus('Chưa đăng nhập · dùng cache', false);
-  }
-
-  renderRoadmap();
-  updateStatsBar();
-  updateNavDots();
-});
-
 async function init(){
+  await loadState();
   renderRoadmap();
   initSectionDecks();
   updateStatsBar();
   updateNavDots();
-  updateAccountUI();
   setTimeout(()=>{ document.getElementById('hero-curve-fill').style.strokeDashoffset = String(600 - 600*(masteryPercent()/100)); }, 200);
 }
 init();
