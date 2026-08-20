@@ -263,6 +263,7 @@
     <div class="nav-group-label">Luyện tập</div>
     <button class="nav-item special" data-view="review">🔁 <span>Ôn tập ngắt quãng</span></button>
     <button class="nav-item special" data-view="quiz">📝 <span>Kiểm tra tổng hợp</span></button>
+    <button class="nav-item special" data-view="exam">🧪 <span>Bài tập</span></button>
   </aside>
 
   <!-- ============ MAIN ============ -->
@@ -604,6 +605,14 @@
       <div id="quiz-area"></div>
     </div>
 
+    <!-- ===== EXAM PRACTICE ===== -->
+    <div class="view" id="view-exam">
+      <div class="los-tag">Bài tập</div>
+      <h2 class="section-title">Bộ đề luyện tập — 7 vignette · 38 câu (format CFA Institute)</h2>
+      <p class="section-sub">Bám sát định dạng item-set thật của CFA Level II. Lần đầu làm trên CFA Institute bạn đạt <b style="color:var(--gold-soft);">30/38 (79%)</b> — các câu sai được tự động đánh dấu ưu tiên ôn lại bên dưới, và danh sách này sẽ tự cập nhật khi bạn làm đúng lại trong app.</p>
+      <div id="exam-area"></div>
+    </div>
+
   </main>
 </div>
 
@@ -654,6 +663,8 @@ function loadCachedState(){
     const saved = JSON.parse(raw);
     state.cardProgress = saved.cardProgress || {};
     state.quizHistory = Array.isArray(saved.quizHistory) ? saved.quizHistory : [];
+    state.examProgress = saved.examProgress || {};
+    state.examHistory = Array.isArray(saved.examHistory) ? saved.examHistory : [];
     return true;
   }catch(e){
     console.warn("Cache cục bộ không hợp lệ:", e);
@@ -778,9 +789,154 @@ const QUIZ = [
 ];
 
 /* =========================================================
+   DATA — BÀI TẬP (đề item-set chuẩn CFA Institute, Reading 30)
+   Nguồn: bộ đề "Alter 30 bài tập" người dùng đã làm, đạt 30/38 (79%).
+   Các câu hỏi/lời giải được diễn giải lại bằng tiếng Việt, giữ nguyên
+   toàn bộ số liệu, đáp án và logic tính toán gốc.
+   ========================================================= */
+const EXAM_VIGNETTES = [
+  {id:'v1', title:'Apex Commodity Fund — Musicale & Brown', text:`Raffi Musicale, portfolio manager của một quỹ hưu trí (defined benefit pension), gặp Jenny Brown — market strategist tại Menlo Bank — để bàn cơ hội đầu tư. Ủy ban đầu tư của quỹ vừa phê duyệt mở rộng phạm vi tài sản sang các lớp tài sản thay thế (alternative asset classes).<br><br>
+Brown đề xuất <b>Apex Commodity Fund (Apex Fund)</b> của Menlo Bank. Apex Fund cố gắng tạo lợi nhuận bằng cách khai thác chênh lệch định giá sai (mispricing) giữa giá spot và giá futures của hàng hóa. Quỹ có quyền tiếp cận kho lưu trữ, cho phép nhận giao hàng thực tế khi cần. Phân bổ tài sản hiện tại của Apex Fund (Exhibit 1):
+<table class="dtable"><tr><th>Commodity Sector</th><th>Tỷ trọng (%)</th></tr>
+<tr><td>Energy</td><td>31.9</td></tr><tr><td>Livestock</td><td>12.6</td></tr><tr><td>Softs</td><td>21.7</td></tr><tr><td>Precious metals</td><td>33.8</td></tr></table>
+Brown giải thích Apex Fund có tương quan lịch sử THẤP với cổ phiếu/trái phiếu → lợi ích đa dạng hóa. Musicale hỏi Brown: "Chị có thể chỉ ra một yếu tố ảnh hưởng định giá tài sản tài chính như cổ phiếu/trái phiếu nhưng KHÔNG ảnh hưởng định giá commodities không?"<br><br>
+Brown chia sẻ dữ liệu futures của 3 thị trường Apex Fund đầu tư (Exhibit 2):
+<table class="dtable"><tr><th>Tháng</th><th>Gold</th><th>Coffee</th><th>Gasoline</th></tr>
+<tr><td>July</td><td>1,301.2</td><td>0.9600</td><td>2.2701</td></tr>
+<tr><td>September</td><td>1,301.2</td><td>0.9795</td><td>2.2076</td></tr>
+<tr><td>December</td><td>1,301.2</td><td>1.0055</td><td>2.0307</td></tr></table>
+<span style="font-size:12px; color:var(--text-dim);">(Gold: USD/troy ounce; coffee: USD/pound; gasoline: USD/gallon)</span><br><br>
+Menlo Bank vừa công bố báo cáo về thị trường coffee, kết luận: "Thị trường coffee vừa có vụ mùa toàn cầu LỚN hơn dự kiến. Dù vậy, hoạt động giao dịch futures coffee vẫn CÂN BẰNG giữa producer và consumer, dự kiến không đổi trong năm tới."<br><br>
+Brown cho xem tổng lợi nhuận một giao dịch gần đây: Apex Fund giữ vị thế long futures đậu nành (soybean), fully collateralized, tại giá quote 865.0 (US cents/bushel). 3 tháng sau, toàn bộ vị thế được roll khi giá futures gần hạn là 877.0 và giá futures xa hạn là 883.0. Trong 3 tháng đó, collateral kiếm lãi suất annualized 0.60%.<br><br>
+Brown: quỹ hưu trí cũng có thể tiếp cận exposure long commodities qua swap. Phân tích vị thế long trong S&P GSCI total return swap, monthly reset, notional $25 triệu (Exhibit 3):
+<table class="dtable"><tr><th>Ngày tham chiếu</th><th>Mức Index</th></tr>
+<tr><td>April (khởi tạo swap)</td><td>2,542.35</td></tr><tr><td>May</td><td>2,582.23</td></tr><tr><td>June</td><td>2,525.21</td></tr></table>`},
+
+  {id:'v2', title:'Farmhouse — McNeil & Falk', text:`Mary McNeil là corporate treasurer tại Farmhouse (sở hữu & vận hành nhiều nông trại & nhà máy ethanol tại Mỹ), phụ trách chính về quản trị rủi ro. Katrina Falk, junior analyst mới, hỗ trợ McNeil. <b>Chính sách quản trị rủi ro của Farmhouse bắt buộc dùng futures để bảo vệ doanh thu khỏi biến động giá</b> (bất kể dự báo giá) và <b>cấm giữ vị thế đầu cơ</b>.<br><br>
+McNeil & Falk thảo luận 2 thị trường: grains và livestock. Falk phát biểu:<br>
+• <b>Statement 1:</b> Vòng đời livestock phụ thuộc sản phẩm và khác nhau rất nhiều theo từng loại.<br>
+• <b>Statement 2:</b> Grains có mùa vụ và chu kỳ sinh trưởng rõ ràng, đặc trưng theo vùng địa lý.<br><br>
+Một phần lớn doanh thu Farmhouse đến từ xuất khẩu livestock; chi phí đầu vào lớn là ngũ cốc nhập khẩu. Falk nêu 3 kết luận:<br>
+• <b>Conclusion 1:</b> Giả sử cầu ngũ cốc không đổi, nắng nóng cực đoan ở vùng nhập khẩu ngũ cốc sẽ mang lại LỢI cho công ty (giá ngũ cốc thấp hơn).<br>
+• <b>Conclusion 2:</b> Thuế quan mới đánh vào cattle ở thị trường xuất khẩu chính sẽ khiến giá sản phẩm livestock của công ty CAO hơn ở thị trường nội địa.<br>
+• <b>Conclusion 3:</b> Cải tiến công nghệ đông lạnh (lưu trữ lâu hơn) sẽ giúp quản lý biến động giá sản phẩm livestock tốt hơn.<br><br>
+McNeil quan sát thêm: (1) convenience yield của soybeans VƯỢT chi phí lưu kho trực tiếp; (2) producers nói chung ÍT quan tâm hedge trên thị trường forward hơn consumers. Dữ liệu giá (Exhibit 1):
+<table class="dtable"><tr><th>Market</th><th>Live Cattle</th><th>Wheat</th><th>Soybeans</th></tr>
+<tr><td>Spot</td><td>109</td><td>407</td><td>846</td></tr><tr><td>Futures</td><td>108</td><td>407</td><td>850</td></tr></table>
+<span style="font-size:12px; color:var(--text-dim);">(Live cattle: US cents/pound; wheat & soybeans: US cents/bushel)</span><br><br>
+Đầu vào quan trọng cho sản xuất ethanol là natural gas. 3 tháng trước, McNeil mở vị thế long NG futures ở $2.93/MMBtu; giá hiện tại $2.99 (Exhibit 2):
+<table class="dtable"><tr><th>Total $ Exposure</th><th>Position</th><th>Near-term (hiện tại)</th><th>Farther-term</th></tr>
+<tr><td>5,860,000</td><td>Long</td><td>2.99</td><td>3.03</td></tr></table>
+<span style="font-size:12px; color:var(--text-dim);">(NG: $/MMBtu; 1 hợp đồng = 10,000 MMBtu)</span><br><br>
+Vị thế fully collateralized, lãi suất 3%. McNeil quyết định roll forward exposure NG hiện tại. Một thành viên ủy ban mới lo ngại về roll return âm và hỏi vì sao McNeil không tránh các vị thế đó.`},
+
+  {id:'v3', title:'NextWave Commodities — Nabli & Yamata', text:`Jamal Nabli là portfolio manager tại NextWave Commodities (NWC), hedge fund commodity ở Mỹ, dùng fixed-weighting phân bổ 12 commodities, benchmark theo TR/CC CRB Index. Nabli quản lý sector energy & livestock cùng Sota Yamata (junior analyst).<br><br>
+Yamata phát biểu:<br>
+• <b>Statement 1:</b> Chi phí lưu kho tương quan NGHỊCH với giá futures.<br>
+• <b>Statement 2:</b> Khác cổ phiếu/trái phiếu, hầu hết đầu tư commodity thực hiện qua derivatives.<br>
+• <b>Statement 3:</b> Commodities tạo dòng tiền tương lai VƯỢT ra ngoài những gì nhận được từ mua-bán chúng.<br><br>
+Dữ liệu Brent crude oil futures (Exhibit 1):
+<table class="dtable"><tr><th>Spot Price</th><th>Near-Term Futures</th><th>Longer-Term Futures</th></tr>
+<tr><td>77.56</td><td>73.64</td><td>73.59</td></tr></table>
+Nghiên cứu của Yamata về sector energy kết luận: Consumers lo ngại về giá NHIỀU hơn producers; energy tiêu thụ theo thời gian thực (real-time), cần lưu kho tối thiểu.<br><br>
+Nabli xem lại vị thế long lean hog futures của NWC: price return −12% năm ngoái, roll return −24% sau khi roll forward. Collateral = 100% giá trị vị thế, lãi suất phi rủi ro 1.2%/năm. Nabli trả lời câu hỏi của Yamata về trạng thái thị trường & roll return:<br>
+• <b>Statement 4:</b> Roll return thường ÂM khi thị trường contango.<br>
+• <b>Statement 5:</b> Roll return thường DƯƠNG khi thị trường backwardation.<br><br>
+NWC cân nhắc đổi benchmark, xem xét 2 index cùng phương pháp weighting/rebalancing: Index A gồm commodity THƯỜNG contango, Index B gồm commodity THƯỜNG backwardation. Nabli hỏi: 2 index này hoạt động thế nào trong thị trường đang trending TĂNG?<br><br>
+Do sụt giảm khoan ở Bắc Hải, Nabli tin giá Brent sẽ tăng NHIỀU hơn heavy crude oil. Biến động thực tế của Brent đã THẤP hơn kỳ vọng, dự đoán tiếp diễn. Nabli cũng kỳ vọng mức ICE Brent Index sẽ TĂNG. Các vị thế cân nhắc: (1) basis swap long Brent/short heavy crude, (2) long volatility swap trên Brent, (3) short position trong excess return swap dựa trên mức CỐ ĐỊNH hiện tại của ICE Brent Index.`},
+
+  {id:'v4', title:'Acaray Pension Fund — Takahshi & Koshinen', text:`Yua Takahshi, CIO của Acaray Pension Fund, phỏng vấn Olavi Koshinen cho vị trí analyst tập trung đầu tư commodity.<br><br>
+Takahshi: "Acaray giữ vị thế nhằm phản ứng lại sự mất cân bằng cảm nhận được giữa tổng cung và tổng cầu cho các khoản đầu tư commodity khác nhau." Hỏi Koshinen sẽ tập trung phân tích gì khi dự báo giá futures. Koshinen: "Tôi nhìn vào giá trị mà người tiêu dùng commodity nhận được từ việc nắm giữ tồn kho — điều tôi tin thường bị nhà đầu tư khác bỏ qua."<br><br>
+Takahshi xem lại phân tích của Koshinen về vị thế SHORT silver futures đang mở của Acaray. Mỗi tháng, khi còn 5 ngày đến đáo hạn, vị thế được roll sang hợp đồng tháng kế tiếp. Coi là fully collateralized, quỹ dành riêng giữ ở trái phiếu chính phủ ngắn hạn, lãi 0.30%/năm (cơ sở 360 ngày). Hợp đồng định giá theo troy ounce. Gần nhất: mở vị thế ở $23.865, đóng ở $23.720, roll vào hợp đồng mới ở $23.785.<br><br>
+Koshinen đưa ra 3 quan sát về quan hệ giữa hình dạng đường cong futures & roll return:<br>
+• <b>Observation 1:</b> Roll return và price return có tương quan THUẬN mạnh.<br>
+• <b>Observation 2:</b> Roll return sẽ DƯƠNG cho vị thế long trong thị trường backwardation.<br>
+• <b>Observation 3:</b> Thị trường contango và backwardation có xu hướng DUY TRÌ mối quan hệ đó theo thời gian.`},
+
+  {id:'v5', title:'SL Investments — Kelsen', text:`Samantha Kelsen quản lý bộ phận commodity tại SL Investments, tư vấn khách hàng tổ chức, doanh nghiệp, và cá nhân giàu có.<br><br>
+Một <b>khách hàng tổ chức</b> muốn vị thế commodity đa dạng hóa với exposure HẠN CHẾ vào energy, đang cân nhắc vài quỹ index dùng phương pháp weighting & rebalancing khác nhau. Kelsen kỳ vọng các commodity riêng lẻ sẽ giữ xu hướng giá hiện tại trong vài tháng tới.<br><br>
+Dự báo khí tượng cho thấy thời tiết vài tháng tới sẽ gây gián đoạn bất thường cho hoạt động lọc dầu. Một số khách hàng của Kelsen giữ vị thế SHORT hợp đồng energy (gasoline, crude oil, natural gas); Kelsen lên kế hoạch tư vấn giảm thiểu thua lỗ nếu dự báo đúng.<br><br>
+<b>Client A</b> (cá nhân giàu có) muốn đầu tư 1 trong 3 loại: softs, energy, hoặc industrial metals — chọn loại có độ nhạy THẤP NHẤT với chính sách môi trường chính phủ.<br><br>
+<b>Client B</b> (doanh nghiệp) dùng hợp đồng copper để hedge chi phí đồng trong sản xuất, hỏi Kelsen về cung-cầu thị trường đồng. Kelsen quan sát: giá futures đồng VƯỢT giá spot.`},
+
+  {id:'v6', title:'Quỹ hưu trí — Owen Adams, kim loại quý', text:`Owen Adams, portfolio manager quỹ hưu trí, xem xét một quỹ futures quản lý chủ động, đầu tư định hướng tập trung kim loại quý.<br><br>
+Dữ liệu futures 3 thị trường kim loại quý (Exhibit 1):
+<table class="dtable"><tr><th></th><th>Gold</th><th>Silver</th><th>Platinum</th></tr>
+<tr><td>1-month futures ($/oz)</td><td>1,894.00</td><td>27.98</td><td>1,143.80</td></tr>
+<tr><td>3-month futures ($/oz)</td><td>1,897.00</td><td>27.78</td><td>1,147.70</td></tr></table>
+Adams phân tích sâu thị trường platinum: convenience yield THẤP hơn chi phí lưu kho trực tiếp; nhà sản xuất platinum quan tâm hedge NHIỀU hơn người tiêu dùng.<br><br>
+Adams giữ vị thế long fully collateralized copper futures, mở 3 tháng trước ở $4.3775/pound, giá hiện tại $4.3965/pound, muốn roll toàn bộ vị thế thêm 3 tháng (Exhibit 2):
+<table class="dtable"><tr><th>Giá futures gần hạn ($/pound)</th><th>Giá futures xa hạn ($/pound)</th><th>Collateral return (annualized)</th></tr>
+<tr><td>4.3965</td><td>4.4055</td><td>0.40%</td></tr></table>
+Adams cũng phân tích vị thế LONG trong total return swap, monthly reset, notional $100 triệu, tham chiếu 1 commodity index (Exhibit 3):
+<table class="dtable"><tr><th>Ngày Settlement</th><th>Mức Index</th></tr>
+<tr><td>July (khởi tạo swap)</td><td>202.17</td></tr><tr><td>August</td><td>203.46</td></tr><tr><td>September</td><td>205.02</td></tr><tr><td>October</td><td>206.51</td></tr></table>`},
+
+  {id:'v7', title:'Quỹ hưu trí quy mô vừa — Sue Tattersall', text:`Sue Tattersall, portfolio manager quỹ hưu trí quy mô vừa, đánh giá vài khoản đầu tư commodity.<br><br>
+Khoản đầu tư đầu tiên: chọn 1 commodity mà nhà sản xuất có thể ĐIỀU CHỈNH NHANH sản lượng theo thay đổi cầu — cân nhắc giữa heating oil hoặc copper.<br><br>
+Tattersall quan sát Commodity X có đường cong futures hiện đang <b>CONTANGO</b>. Kỳ vọng giá spot ổn định, cân nhắc chiến lược tối đa hóa roll return.<br><br>
+Tattersall dựa quan điểm về lợi nhuận futures trên giả định: nhà sản xuất commodity muốn bán kỳ hạn (forward) → bán futures; người tiêu dùng commodity muốn khóa giá mua → mua futures.<br><br>
+Tattersall giữ vị thế SHORT trong total return swap tham chiếu 1 commodity index, reset hàng tháng, notional $100 triệu (Exhibit 1):
+<table class="dtable"><tr><th>Ngày Settlement</th><th>Mức Index</th></tr>
+<tr><td>January (khởi tạo swap)</td><td>202.17</td></tr><tr><td>February</td><td>203.46</td></tr><tr><td>March</td><td>205.02</td></tr><tr><td>April</td><td>205.02</td></tr></table>`}
+];
+
+const EXAM_QUESTIONS = [
+  {id:'e1', vignette:'v1', prompt:`Apex Fund được mô tả tốt nhất là:`, opts:[`Một hedger.`,`Một speculator.`,`Một arbitrageur.`], correct:2, exp:`Đúng vì commodity arbitrage liên quan khả năng lưu kho hàng hóa vật chất, cố gắng khai thác chênh lệch định giá sai giữa commodity (cộng chi phí lưu kho & tài trợ) và giá futures. Apex Fund có quyền tiếp cận kho lưu trữ và dùng nó để khai thác cơ hội mispricing — đúng đặc điểm arbitrageur, không đơn thuần hedge (hedger) hay đầu cơ theo thông tin/thanh khoản (speculator).`},
+  {id:'e2', vignette:'v1', prompt:`Yếu tố nào nhiều khả năng ảnh hưởng cung/cầu của CẢ 4 sector trong danh mục Apex Fund?`, opts:[`Thời tiết (Weather).`,`Hao hụt (Spoilage).`,`Hành động của chính phủ (Government actions).`], correct:2, exp:`Đúng vì hành động chính phủ ảnh hưởng cả 4 sector: Energy (quy định môi trường tăng chi phí xử lý → giảm cầu); Livestock (chính phủ cho phép/cấm dùng thuốc & hormone tăng trưởng ảnh hưởng cung); Softs (chính sách dự trữ chiến lược kiểm soát giá nội địa); Precious metals (giá trị vàng gắn trực tiếp với chính sách kiểm soát lạm phát).`},
+  {id:'e3', vignette:'v1', prompt:`Câu trả lời phù hợp nhất cho câu hỏi của Musicale về yếu tố định giá là:`, opts:[`Chi phí lưu kho (storage costs).`,`Chi phí vận chuyển (transportation costs).`,`Dòng tiền tương lai kỳ vọng (expected future cash flows).`], correct:2, exp:`Đúng vì dòng tiền tương lai kỳ vọng ảnh hưởng định giá tài sản tài chính (cổ phiếu, trái phiếu) nhưng KHÔNG ảnh hưởng định giá commodities. Tài sản tài chính định giá dựa trên dòng tiền tương lai kỳ vọng; commodities định giá dựa trên dự báo chiết khấu của giá tương lai, có tính đến chi phí lưu kho & vận chuyển (chứ không phải dòng tiền).`},
+  {id:'e4', vignette:'v1', prompt:`Thị trường futures nào trong Exhibit 2 đang ở trạng thái backwardation?`, opts:[`Gold.`,`Coffee.`,`Gasoline.`], correct:2, exp:`Đúng vì khi giá futures gần hạn cao hơn giá futures xa hạn → backwardation. Gasoline là commodity duy nhất có giá gần hạn ($2.2701) cao hơn giá xa hạn ($2.0307). (Gold không đổi qua các tháng — flat; Coffee tăng dần theo kỳ hạn xa hơn — contango.)`},
+  {id:'e5', vignette:'v1', prompt:`Dựa kết luận báo cáo Menlo Bank về coffee, hình dạng đường cong futures coffee ở Exhibit 2 phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:1, exp:`Đúng vì theory of storage tập trung vào mức tồn kho & trạng thái cung-cầu. Hàng hóa cần lưu trữ thường xuyên sẽ có giá tương lai cao hơn (contango) để bù chi phí lưu kho — coffee là hàng hóa cần lưu trữ, giá tương lai cao hơn phù hợp lý thuyết này. (Không phải hedging pressure vì báo cáo nói hoạt động hedging CÂN BẰNG giữa producer/consumer — theo hedging pressure hypothesis, cân bằng sẽ dẫn tới đường cong PHẲNG, không giải thích được độ dốc contango quan sát được.)`},
+  {id:'e6', vignette:'v1', prompt:`Dựa Exhibit 2, roll return của commodity nào nhiều khả năng DƯƠNG?`, opts:[`Gold.`,`Coffee.`,`Gasoline.`], correct:2, exp:`Đúng vì roll return thường dương (âm) khi thị trường backwardation (contango), bằng 0 khi flat. Vì gasoline đang backwardation → roll return nhiều khả năng dương.`},
+  {id:'e7', vignette:'v1', prompt:`[Tính toán] Tổng lợi nhuận 3 tháng của giao dịch soybean futures gần nhất với:`, opts:[`0.85%.`,`1.30%.`,`2.22%.`], correct:0, exp:`Price return = (877.0−865.0)/865.0 = 1.387%. Roll return = [(877.0−883.0)/877.0]×100% = −0.684%. Collateral return = (3/12)×0.60% = 0.15%. Total return = 1.387% − 0.684% + 0.15% = 0.853% ≈ 0.85%.`},
+  {id:'e8', vignette:'v1', prompt:`Dựa Exhibit 3, vào ngày settlement tháng 6, bên LONG trong S&P GSCI total return swap sẽ:`, opts:[`Phải trả (owe) khoảng $552,042.23.`,`Nhận khoảng $1,502,621.33.`,`Nhận khoảng $1,971,173.60.`], correct:0, exp:`Return tháng 6 = (2,525.21−2,582.23)/2,582.23 = −2.2082%. Index GIẢM → bên long (buyer) phải trả cho bên short. Payment = $25,000,000 × (−2.2082%) = −$552,042.23 → bên long phải trả $552,042.23.`},
+
+  {id:'e9', vignette:'v2', prompt:`Xét theo chính sách quản trị rủi ro, Farmhouse được mô tả tốt nhất là:`, opts:[`Một trader.`,`Một hedger.`,`Một arbitrageur.`], correct:1, exp:`Đúng vì hedgers giao dịch futures để hedge exposure liên quan commodity — đúng như chính sách quản trị rủi ro của Farmhouse quy định (bắt buộc dùng futures bảo vệ doanh thu, cấm đầu cơ).`},
+  {id:'e10', vignette:'v2', prompt:`Phát biểu nào của Falk về đặc điểm thị trường grains & livestock là ĐÚNG?`, opts:[`Chỉ Statement 1.`,`Chỉ Statement 2.`,`Cả Statement 1 và Statement 2.`], correct:2, exp:`Đúng vì vòng đời livestock đúng là khác nhau rất nhiều theo sản phẩm; grains đúng là có mùa vụ & chu kỳ sinh trưởng rõ ràng, đặc trưng theo vùng — cả 2 statement đều đúng.`},
+  {id:'e11', vignette:'v2', prompt:`Kết luận nào của Falk về thị trường commodity là ĐÚNG?`, opts:[`Conclusion 1.`,`Conclusion 2.`,`Conclusion 3.`], correct:2, exp:`Đúng vì cải tiến công nghệ đông lạnh giúp công ty lưu trữ sản phẩm lâu hơn, quản lý biến động cung-cầu tốt hơn (VD: đông lạnh khi dư cung, bán ra khi thị trường tốt hơn). Conclusion 1 SAI: nắng nóng cực đoan làm GIẢM cung ngũ cốc → giá TĂNG (bất lợi, vì công ty NHẬP KHẨU ngũ cốc). Conclusion 2 SAI: thuế quan mới ở thị trường XUẤT KHẨU sẽ làm GIẢM cầu xuất khẩu → dư cung trong nước → giá NỘI ĐỊA có xu hướng GIẢM, không phải tăng.`},
+  {id:'e12', vignette:'v2', prompt:`Thị trường commodity nào trong Exhibit 1 đang ở trạng thái CONTANGO?`, opts:[`Wheat.`,`Soybeans.`,`Live cattle.`], correct:1, exp:`Đúng vì thị trường soybean đang contango do giá spot (846) thấp hơn giá futures (850). (Wheat: spot=futures=407 → flat. Live cattle: spot 109 > futures 108 → backwardation.)`},
+  {id:'e13', vignette:'v2', prompt:`Dựa Exhibit 1 và 2 quan sát của McNeil, giá futures soybeans phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:2, exp:`Đúng vì giá spot soybeans THẤP hơn giá futures — chỉ hedging pressure hypothesis giải thích được: khi consumers quan tâm hedge NHIỀU hơn producers, giá futures sẽ VƯỢT giá spot. Insurance theory dự đoán NGƯỢC LẠI (futures phải thấp hơn spot để đền bù speculator). Theory of storage cũng dự đoán ngược: khi convenience yield LỚN HƠN chi phí lưu kho (đúng như McNeil quan sát ở soybeans) thì futures phải THẤP hơn spot (backwardation) — không khớp với contango quan sát được. Vì 2 lý thuyết kia dự đoán sai hướng, chỉ hedging pressure hypothesis phù hợp.`},
+  {id:'e14', vignette:'v2', prompt:`[Tính toán] Dựa Exhibit 2, tổng lợi nhuận từ vị thế long NG futures gần nhất với:`, opts:[`1.46%.`,`3.71%.`,`4.14%.`], correct:0, exp:`Price return = (2.99−2.93)/2.93 = 2.05%. Roll return = [(2.99−3.03)/2.99]×100% = −1.34%. Collateral return = 3%×0.25 = 0.75%. Total return = 2.05% − 1.34% + 0.75% = 1.46%.`},
+  {id:'e15', vignette:'v2', prompt:`Câu trả lời phù hợp nhất cho câu hỏi của thành viên ủy ban mới (vì sao không tránh roll return âm) là:`, opts:[`Roll return tương quan ÂM với price return.`,`Các roll return đó là kết quả của thị trường backwardation.`,`Các vị thế đó vẫn có thể outperform vị thế có roll return dương.`], correct:2, exp:`Đúng vì vị thế được đánh giá theo TOTAL return, roll return chỉ là 1 phần. Roll return âm ảnh hưởng tiêu cực nhưng có thể được bù nhiều hơn bởi price return & collateral return dương — hoàn toàn có thể vị thế roll return âm outperform vị thế roll return dương.`},
+
+  {id:'e16', vignette:'v3', prompt:`Phát biểu nào của Yamata về định giá & lưu trữ commodity là ĐÚNG?`, opts:[`Statement 1.`,`Statement 2.`,`Statement 3.`], correct:1, exp:`Đúng vì cách phổ biến nhất để đầu tư commodity là qua derivatives (Statement 2 đúng). Statement 3 SAI: commodities KHÔNG tạo dòng tiền tương lai vượt ra ngoài mua-bán. Statement 1 SAI: chi phí lưu kho tương quan THUẬN (không phải nghịch) với giá futures — hàng hóa lưu kho thường xuyên sẽ có giá tương lai CAO hơn để bù chi phí lưu kho.`},
+  {id:'e17', vignette:'v3', prompt:`Dựa Exhibit 1, Yamata nên kết luận:`, opts:[`Calendar spread của Brent crude oil là $3.97.`,`Thị trường Brent crude oil futures đang backwardation.`,`Basis của hợp đồng Brent crude oil gần hạn là $0.05/thùng.`], correct:1, exp:`Đúng — thị trường Brent đang backwardation: spot (77.56) > futures gần hạn (73.64) > futures xa hạn (73.59). Calendar spread = giá gần hạn − giá xa hạn = $73.64−$73.59 = $0.05 (không phải $3.97). Basis (gần hạn) = giá spot − giá futures gần hạn = $77.56−$73.64 = $3.92 (không phải $0.05).`},
+  {id:'e18', vignette:'v3', prompt:`Dựa Exhibit 1 & nghiên cứu của Yamata, hình dạng đường cong futures Brent crude oil phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:1, exp:`Đúng vì Brent đang backwardation (spot > futures gần hạn). Theo theory of storage, commodity tiêu thụ theo chuỗi giá trị cho phép giao "just-in-time" (tồn kho tối thiểu) có thể tránh chi phí lưu kho — khớp với nghiên cứu Yamata: energy tiêu thụ real-time, cần lưu kho tối thiểu. Trong tình huống này cầu vượt cung, giá hiện tại cao hơn giá tương lai (backwardation) — phù hợp theory of storage.`},
+  {id:'e19', vignette:'v3', prompt:`[Tính toán] Tổng lợi nhuận (annualized, không đòn bẩy) trên hợp đồng lean hog futures là:`, opts:[`−37.2%.`,`−36.0%.`,`−34.8%.`], correct:2, exp:`Hợp đồng giữ 1 năm nên price return −12% và roll return −24% đã là số annualized. Collateral return = 1.2%/năm × 100% vốn ký quỹ = 1.2%. Total return = −12% + (−24%) + 1.2% = −34.8%.`},
+  {id:'e20', vignette:'v3', prompt:`Phát biểu nào của Nabli về roll return là ĐÚNG?`, opts:[`Chỉ Statement 4.`,`Chỉ Statement 5.`,`Cả Statement 4 và Statement 5.`], correct:2, exp:`Đúng vì roll return thường ÂM (DƯƠNG) khi thị trường contango (backwardation), bằng 0 khi flat — cả 2 statement đều đúng.`},
+  {id:'e21', vignette:'v3', prompt:`Câu trả lời tốt nhất cho câu hỏi của Nabli về hiệu suất tương đối 2 index: Index B nhiều khả năng có lợi nhuận:`, opts:[`Thấp hơn Index A.`,`Giống Index A.`,`Cao hơn Index A.`], correct:2, exp:`Đúng vì Index B (gồm commodity thường backwardation) nhiều khả năng có hiệu suất CAO HƠN Index A (gồm commodity thường contango) trong thị trường đang trending TĂNG. Index chứa hợp đồng thường backwardation cải thiện hiệu suất vì tạo roll return DƯƠNG; index chứa hợp đồng thường contango bị ảnh hưởng xấu vì roll return ÂM.`},
+  {id:'e22', vignette:'v3', prompt:`Với các kỳ vọng của Nabli về dầu thô, vị thế swap phù hợp nhất là:`, opts:[`Basis swap.`,`Volatility swap.`,`Excess return swap.`], correct:0, exp:`Đúng — Nabli kỳ vọng giá Brent tăng NHIỀU HƠN heavy crude oil → tận dụng bằng basis swap long Brent/short heavy crude. Về volatility swap: Nabli nên SHORT (không phải long) để tận dụng dự đoán biến động Brent THẤP hơn kỳ vọng. Về excess return swap: Nabli nên LONG (không phải short) để tận dụng kỳ vọng ICE Brent Index sẽ TĂNG.`},
+
+  {id:'e23', vignette:'v4', prompt:`Dựa phát biểu của Takahshi, Acaray được mô tả tốt nhất là loại nhà đầu tư commodity nào?`, opts:[`Arbitrageur.`,`Liquidity provider.`,`Informed investor.`], correct:1, exp:`Đúng — Acaray phản ứng với mất cân bằng cảm nhận được giữa cung-cầu, cung cấp thanh khoản với kỳ vọng kiếm lời từ phần dư người mua hoặc dư người bán. Một speculator sẵn sàng đóng vai liquidity provider: mua khi producer muốn bán, bán khi consumer sẵn sàng mua — theo nghĩa này "bước vào" cung cấp bảo hiểm cho hedgers đổi lấy lợi nhuận kỳ vọng. (Arbitrageur khai thác chênh lệch định giá sai giữa commodity vật chất và futures — không khớp. Informed investor dựa trên lợi thế THÔNG TIN để vượt trội hedger — không khớp vì mô tả của Takahshi nói về phản ứng mất cân bằng cung-cầu, không phải lợi thế thông tin.)`},
+  {id:'e24', vignette:'v4', prompt:`Cách tiếp cận dự báo giá commodity của Koshinen phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:1, exp:`Đúng — theory of storage cho rằng giá futures bị ảnh hưởng bởi chi phí lưu kho (tăng giá futures) và convenience yield — giá trị người tiêu dùng nhận được từ nắm giữ tồn kho (giảm giá futures). Sự tập trung của Koshinen vào lợi ích nắm giữ tồn kho khớp chặt nhất với lý thuyết này. Convenience yield THẤP khi tồn kho dồi dào, TĂNG khi tồn kho cạn kiệt & lo ngại nguồn cung tăng.`},
+  {id:'e25', vignette:'v4', prompt:`[Tính toán] Tổng lợi nhuận tháng gần nhất của vị thế silver futures (vị thế SHORT) Koshinen phân tích gần nhất với:`, opts:[`−0.86%.`,`0.91%.`,`1.19%.`], correct:1, exp:`Đây là vị thế SHORT nên total return = −(price return + roll return) + collateral return: = −(23.720−23.865)/23.865 + −(23.720−23.785)/23.720 + 0.0030/12 = 0.00608 + 0.00274 + 0.00025 ≈ 0.91%. (Đáp án A tính nhầm như vị thế LONG; đáp án C dùng nhầm lãi suất collateral CẢ NĂM thay vì đã chia 12 tháng.)`},
+  {id:'e26', vignette:'v4', prompt:`Quan sát nào của Koshinen chính xác nhất?`, opts:[`Observation 1.`,`Observation 2.`,`Observation 3.`], correct:1, exp:`Đúng — roll return về bản chất là chênh lệch (%) giữa giá futures gần hạn và xa hạn. Khi backwardation, giá gần hạn CAO hơn giá xa hạn nên khi roll, roll yield sẽ DƯƠNG. (Observation 1 SAI: tương quan thực nghiệm giữa roll return & price return chỉ ~3% — không có ý nghĩa nhiều. Observation 3 SAI: thị trường KHÔNG duy trì mãi trạng thái backwardation/contango — các giai đoạn này không kéo dài vô thời hạn.)`},
+
+  {id:'e27', vignette:'v5', prompt:`Quỹ index commodity nào TỐT NHẤT để Kelsen giới thiệu cho khách hàng tổ chức (muốn đa dạng hóa, exposure hạn chế vào energy)?`, opts:[`Equal-weighted, rebalance hàng tháng.`,`Equal-weighted, rebalance hàng năm.`,`Production-weighted, rebalance hàng năm.`], correct:1, exp:`Đúng — quỹ equal-weighted phân bổ đều giữa các commodity (production-weighted sẽ nặng vào energy). Kelsen kỳ vọng commodity giữ xu hướng vài tháng tới, nên quỹ rebalance ÍT thường xuyên hơn được ưu tiên: rebalance hàng tháng liên tục "nhảy vào/ra" theo hiệu suất khi xu hướng tiếp diễn, dẫn đến kém hiệu quả trong thị trường trending (bán tài sản đang outperform dù còn tăng, mua tài sản đang underperform dù còn giảm). Production-weighted có tỷ trọng nặng energy (lịch sử có thể tới 80% sector weight) — không phù hợp yêu cầu hạn chế energy.`},
+  {id:'e28', vignette:'v5', prompt:`Dựa dự báo khí tượng (gián đoạn refinery), khuyến nghị TỐT NHẤT của Kelsen là khách hàng (đang short) nên giảm exposure vào:`, opts:[`Gasoline.`,`Crude oil.`,`Natural gas.`], correct:0, exp:`Đúng — gasoline là sản phẩm DUY NHẤT trong 3 loại cần qua lọc dầu (refining), nên bị ảnh hưởng nhiều nhất. Gián đoạn giảm cung gasoline → giá TĂNG → khách hàng short bị thiệt hại nhiều nhất. (Crude oil không cần lọc, có thể lưu trữ chờ khi cần. Natural gas cũng không cần lọc, dùng trực tiếp sau khai thác.)`},
+  {id:'e29', vignette:'v5', prompt:`Sector commodity nào Kelsen nên giới thiệu cho Client A (muốn độ nhạy thấp nhất với chính sách môi trường chính phủ)?`, opts:[`Softs.`,`Energy.`,`Industrial metals.`], correct:0, exp:`Đúng — Softs (coffee, cocoa, sugar, cotton) là cây trồng chịu chính sách môi trường tương đối HẠN CHẾ; thời tiết, thị hiếu & thu nhập người tiêu dùng là động lực chính. (Energy và Industrial metals đều chịu ảnh hưởng NẶNG từ chính sách môi trường.)`},
+  {id:'e30', vignette:'v5', prompt:`Dựa hedging pressure hypothesis, Kelsen nên báo cáo với Client B rằng đang có dư thừa (excess) bên nào trong thị trường đồng (futures > spot)?`, opts:[`Producers trong thị trường đồng.`,`Consumers trong thị trường đồng.`,`Speculators trong thị trường đồng.`], correct:1, exp:`Đúng — cấu trúc kỳ hạn đang dốc lên (contango); theo hedging pressure hypothesis, nghĩa là nhu cầu phía LONG cao hơn, đẩy giá LÊN — consumers tham gia phía long, đẩy giá lên nếu họ chiếm ưu thế. (Producers chiếm ưu thế sẽ đẩy giá XUỐNG qua phía short — ngược với contango quan sát được. Speculators chỉ lấp khoảng trống giữa producer/consumer theo niềm tin riêng, không gây dư thừa một phía.)`},
+
+  {id:'e31', vignette:'v6', prompt:`Dựa 3 hợp đồng futures kim loại quý ở Exhibit 1, thị trường:`, opts:[`Gold đang backwardation, calendar spread −$3.00/oz.`,`Silver đang backwardation, calendar spread $0.20/oz.`,`Platinum đang contango, calendar spread $3.90/oz.`], correct:1, exp:`Đúng — Calendar spread = giá gần hạn − giá xa hạn. Silver: $27.98−$27.78 = $0.20/oz, và đang backwardation vì giá gần hạn CAO hơn giá xa hạn. (A sai: calendar spread gold đúng là −$3.00, NHƯNG gold đang CONTANGO chứ không backwardation vì giá gần hạn thấp hơn giá xa hạn. C sai: platinum đúng đang contango, nhưng calendar spread đúng là −$3.90, không phải +$3.90.)`},
+  {id:'e32', vignette:'v6', prompt:`Dựa 2 quan sát của Adams, hình dạng đường cong futures platinum phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:1, exp:`Đúng — giá futures gần hạn platinum THẤP hơn xa hạn → contango. Platinum: (i) cần lưu trữ, (ii) convenience yield thấp hơn chi phí lưu kho, (iii) đang contango — cả 3 khớp theory of storage. (Insurance theory dự đoán "normal backwardation" — không khớp vì platinum đang contango. Hedging pressure hypothesis: nếu producer quan tâm hedge nhiều hơn consumer sẽ dẫn tới backwardation — cũng không khớp với contango quan sát được.)`},
+  {id:'e33', vignette:'v6', prompt:`[Tính toán] Tổng lợi nhuận từ vị thế long copper futures gần nhất với:`, opts:[`−0.10%.`,`0.33%.`,`0.63%.`], correct:1, exp:`Price return = (4.3965−4.3775)/4.3775 ≈ 0.4340%. Roll return = [(4.3965−4.4055)/4.3965]×100% ≈ −0.2047%. Collateral return = 0.40%×(3/12) = 0.10%. Total return ≈ 0.4340% − 0.2047% + 0.10% ≈ 0.33%. (A sai: tính nhầm roll return dùng giá trước đó thay vì giá gần hạn hiện tại. C sai: dùng nhầm lãi suất collateral cả năm thay vì đã pro-rate 3 tháng.)`},
+  {id:'e34', vignette:'v6', prompt:`[Tính toán] Vào ngày settlement tháng 10 của total return swap, Adams (vị thế LONG) đáng lẽ:`, opts:[`Phải trả khoảng $0.73 triệu.`,`Nhận khoảng $0.73 triệu.`,`Nhận khoảng $2.15 triệu.`], correct:1, exp:`Return tháng 10 = (206.51−205.02)/205.02 ≈ 0.7268%. Index TĂNG → bên long NHẬN thanh toán từ bên short. Payment = $100,000,000×0.7268% ≈ $0.73 triệu. (A sai: đảo dấu tính toán. C sai: dùng nhầm mốc tháng July [202.17, lúc khởi tạo swap] thay vì tháng September [205.02] làm điểm gốc so sánh.)`},
+
+  {id:'e35', vignette:'v7', prompt:`Liệu 1 trong 2 commodity Tattersall cân nhắc (heating oil hay copper) có phù hợp với mục tiêu đầu tư đầu tiên (nhà sản xuất điều chỉnh nhanh sản lượng) không?`, opts:[`Không — cả hai đều không phù hợp.`,`Có, copper phù hợp.`,`Có, heating oil phù hợp.`], correct:0, exp:`Đúng — KHÔNG cái nào phù hợp. Tương tự lọc dầu thô, economies of scale trong nhà máy luyện kim/xử lý quặng là yếu tố then chốt — cơ sở khổng lồ với chi phí biên giảm mạnh theo quy mô & mức sử dụng công suất. Khi cung vượt cầu với industrial metal, nhà sản xuất RẤT KHÓ cắt giảm hay dừng sản xuất. Tương tự, sản lượng lọc heating oil cũng không dễ điều chỉnh nhanh.`},
+  {id:'e36', vignette:'v7', prompt:`Dựa hình dạng đường cong futures Commodity X (đang contango) và kỳ vọng thị trường (giá spot ổn định), để tối đa hóa roll return Tattersall nên:`, opts:[`Chỉ bán futures.`,`Chỉ mua futures.`,`Bán spot và mua futures.`], correct:0, exp:`Đúng — khi thị trường contango (đường cong dốc LÊN theo kỳ hạn xa hơn), để tối đa hóa roll return nên BÁN futures: khi giá futures hội tụ về giá spot (các yếu tố khác không đổi), nhà đầu tư thu lợi. (Mua futures mới là chiến lược tối đa hóa roll return khi BACKWARDATION, không phải contango. "Bán spot và mua futures" không liên quan đến contango/backwardation — đó là đầu cơ thuần túy.)`},
+  {id:'e37', vignette:'v7', prompt:`Quan điểm của Tattersall về lợi nhuận futures (producer muốn bán forward, consumer muốn khóa giá mua) phù hợp nhất với:`, opts:[`Insurance theory.`,`Theory of storage.`,`Hedging pressure hypothesis.`], correct:2, exp:`Đúng — hedging pressure hypothesis cho rằng cả producer lẫn consumer đều tìm cách tự bảo vệ khỏi biến động giá bằng hedge: producer muốn bán forward (bán futures), consumer muốn khóa giá mua (mua futures) — khớp chính xác 2 giả định của Tattersall. (Insurance theory chỉ tập trung hành vi producer bán forward, dự đoán "normal backwardation" — không đề cập hành vi consumer. Theory of storage tập trung mức tồn kho quyết định hình dạng đường cong — không liên quan giả định hành vi producer/consumer.)`},
+  {id:'e38', vignette:'v7', prompt:`[Tính toán] Vào ngày settlement tháng 4 của total return swap, Tattersall (vị thế SHORT) đáng lẽ:`, opts:[`Đã phải trả một khoản thanh toán.`,`Đã nhận một khoản thanh toán.`,`Không trả cũng không nhận (index không đổi).`], correct:2, exp:`Đúng — Return tháng 4 = (205.02−205.02)/205.02 = 0% (index không đổi so với tháng 3) → KHÔNG có thanh toán nào diễn ra. (Với total return swap: nếu index TĂNG, bên SHORT phải TRẢ; nếu index GIẢM, bên short NHẬN — nhưng ở đây index đi ngang nên không bên nào trả/nhận.)`}
+];
+
+// 8 câu người dùng đã làm SAI trong lần đầu trên CFA Institute (30/38 = 79%).
+// Danh sách này chỉ là điểm khởi đầu — một khi làm đúng lại trong app,
+// needsReviewSet() bên dưới sẽ tự động bỏ câu đó khỏi danh sách cần ôn.
+const WRONG_LAST_TIME = ['e1','e13','e21','e22','e23','e27','e34','e38'];
+
+/* =========================================================
    STATE & PERSISTENCE
    ========================================================= */
-let state = { cardProgress:{}, quizHistory:[] };
+let state = { cardProgress:{}, quizHistory:[], examProgress:{}, examHistory:[] };
 const BOX_INTERVAL_DAYS = [0,0,1,3,7,14];
 
 function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -796,12 +952,16 @@ async function loadState(){
       const saved = snapshot.val() || {};
       state.cardProgress = saved.cardProgress || {};
       state.quizHistory = Array.isArray(saved.quizHistory) ? saved.quizHistory : [];
+      state.examProgress = saved.examProgress || {};
+      state.examHistory = Array.isArray(saved.examHistory) ? saved.examHistory : [];
       cacheState();
       setSyncStatus("Firebase đã đồng bộ");
     }else{
       await set(firebaseStateRef(), {
         cardProgress: state.cardProgress,
         quizHistory: state.quizHistory,
+        examProgress: state.examProgress,
+        examHistory: state.examHistory,
         updatedAt: new Date().toISOString()
       });
       cacheState();
@@ -820,6 +980,8 @@ async function saveState(){
     await set(firebaseStateRef(), {
       cardProgress: state.cardProgress,
       quizHistory: state.quizHistory,
+      examProgress: state.examProgress,
+      examHistory: state.examHistory,
       updatedAt: new Date().toISOString()
     });
     setSyncStatus("Đã lưu Firebase");
@@ -877,6 +1039,7 @@ function navigateTo(view){
   document.querySelector('.main').scrollTo({top:0, behavior:'instant'});
   if(view==='review') renderReview();
   if(view==='quiz') renderQuizSetup();
+  if(view==='exam') renderExamHome();
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(btn=>{
   btn.addEventListener('click', ()=> navigateTo(btn.getAttribute('data-view')) );
@@ -1102,6 +1265,130 @@ function finishQuiz(){
       </div>
     </div>`;
   document.getElementById('quiz-retry').addEventListener('click', renderQuizSetup);
+}
+
+/* =========================================================
+   BÀI TẬP — 7 vignette / 38 câu (item-set, format CFA Institute)
+   Dùng chung kiến trúc singleton-container như Kiểm tra tổng hợp
+   ở trên (#exam-area luôn được ghi đè toàn bộ mỗi lần render, nên
+   không gặp lỗi trùng id như bộ thẻ flashcard trước đây).
+   ========================================================= */
+function needsReviewSet(){
+  // Ưu tiên kết quả làm gần nhất TRONG APP nếu đã có; nếu chưa từng làm
+  // lại trong app, dùng danh sách 8 câu sai gốc từ lần làm trên CFA Institute.
+  return EXAM_QUESTIONS.filter(q=>{
+    const p = state.examProgress[q.id];
+    if(p && typeof p.lastCorrect === 'boolean') return !p.lastCorrect;
+    return WRONG_LAST_TIME.includes(q.id);
+  });
+}
+function vignetteOf(q){ return EXAM_VIGNETTES.find(v=>v.id===q.vignette); }
+
+let examState = null;
+
+function renderExamHome(){
+  const area = document.getElementById('exam-area');
+  const review = needsReviewSet();
+  const lastAttempt = state.examHistory.length ? state.examHistory[state.examHistory.length-1] : null;
+  area.innerHTML = `
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn btn-rust" id="exam-review-btn" ${review.length ? '' : 'disabled'}>🎯 Ôn các câu từng sai (${review.length} câu)</button>
+      <button class="btn btn-primary" id="exam-full-btn">📋 Làm lại toàn bộ đề (${EXAM_QUESTIONS.length} câu)</button>
+    </div>
+    ${lastAttempt ? `<p style="color:var(--text-dim); font-size:12.5px; margin-top:12px;">Lần gần nhất trong app (${lastAttempt.label}): <span class="quiz-score">${lastAttempt.score}/${lastAttempt.total}</span></p>` : ''}
+    <h3 style="margin-top:26px;">Làm theo từng vignette</h3>
+    <p class="section-sub" style="margin-bottom:14px;">Mỗi vignette là một case độc lập kèm các câu hỏi liên quan — đúng cấu trúc item-set thật trên bài thi.</p>
+    <div class="roadmap" id="exam-vignette-list"></div>
+  `;
+  const reviewBtn = document.getElementById('exam-review-btn');
+  if(review.length){
+    reviewBtn.addEventListener('click', ()=> startExamSession(review.map(q=>q.id), 'Ôn câu đã sai') );
+  }
+  document.getElementById('exam-full-btn').addEventListener('click', ()=>{
+    startExamSession(EXAM_QUESTIONS.map(q=>q.id), 'Làm lại toàn bộ đề');
+  });
+  const listEl = document.getElementById('exam-vignette-list');
+  listEl.innerHTML = EXAM_VIGNETTES.map(v=>{
+    const qids = EXAM_QUESTIONS.filter(q=>q.vignette===v.id).map(q=>q.id);
+    const wrongInThis = qids.filter(id=> review.some(r=>r.id===id) ).length;
+    return `<div class="roadmap-item" data-vg="${v.id}">
+      <span class="code">${qids.length} câu</span><span class="t">${v.title}</span><span class="status">${wrongInThis ? wrongInThis+' câu cần ôn' : '✓ ổn'}</span>
+    </div>`;
+  }).join('');
+  listEl.querySelectorAll('[data-vg]').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const vgid = row.getAttribute('data-vg');
+      const qids = EXAM_QUESTIONS.filter(q=>q.vignette===vgid).map(q=>q.id);
+      startExamSession(qids, EXAM_VIGNETTES.find(v=>v.id===vgid).title);
+    });
+  });
+}
+
+function startExamSession(questionIds, label){
+  const qs = EXAM_QUESTIONS.filter(q=> questionIds.includes(q.id));
+  examState = { qs, idx:0, score:0, answered:false, label };
+  renderExamQuestion();
+}
+
+function renderExamQuestion(){
+  const area = document.getElementById('exam-area');
+  const { qs, idx, score } = examState;
+  const q = qs[idx];
+  const vg = vignetteOf(q);
+  examState.answered = false;
+  const showVignette = (idx===0) || (qs[idx-1].vignette !== q.vignette);
+  area.innerHTML = `
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${(idx/qs.length*100)}%;"></div></div>
+    <div class="deck-progress" style="margin-bottom:12px;">${examState.label} · Câu ${idx+1}/${qs.length} · Điểm hiện tại: <span class="quiz-score">${score}</span></div>
+    ${showVignette ? `<div class="callout" style="margin-bottom:18px;"><b>${vg.title}</b><br><br>${vg.text}</div>` : ''}
+    <div class="quiz-card">
+      <div class="q-text">${q.prompt}</div>
+      <div id="exam-opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+      <div id="exam-exp"></div>
+      <div class="btn-row"><button class="btn btn-primary" id="exam-next" style="display:none;">Câu tiếp →</button></div>
+    </div>
+  `;
+  document.querySelectorAll('#exam-opts .opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(examState.answered) return;
+      examState.answered = true;
+      const chosen = parseInt(btn.getAttribute('data-i'));
+      document.querySelectorAll('#exam-opts .opt').forEach((b,i)=>{
+        b.disabled = true;
+        if(i===q.correct) b.classList.add('correct');
+        else if(i===chosen) b.classList.add('wrong');
+      });
+      const isCorrect = chosen===q.correct;
+      if(isCorrect) examState.score++;
+      const prevAttempts = (state.examProgress[q.id] && state.examProgress[q.id].attempts) || 0;
+      state.examProgress[q.id] = { lastCorrect:isCorrect, attempts: prevAttempts+1 };
+      saveState();
+      document.getElementById('exam-exp').innerHTML = `<div class="quiz-exp"><b>${isCorrect ? '✔ Chính xác.' : '✘ Chưa đúng.'}</b> ${q.exp}</div>`;
+      document.getElementById('exam-next').style.display = 'inline-block';
+    });
+  });
+  document.getElementById('exam-next').addEventListener('click', ()=>{
+    if(examState.idx < examState.qs.length-1){ examState.idx++; renderExamQuestion(); }
+    else finishExamSession();
+  });
+}
+
+function finishExamSession(){
+  const area = document.getElementById('exam-area');
+  const { qs, score, label } = examState;
+  state.examHistory.push({date: todayStr(), score, total: qs.length, label});
+  saveState();
+  const pct = Math.round(score/qs.length*100);
+  area.innerHTML = `
+    <div class="empty-state">
+      <div class="big">${pct>=70?'🏆':pct>=50?'👍':'📚'}</div>
+      <h3>Kết quả: <span class="quiz-score">${score}/${qs.length}</span> (${pct}%)</h3>
+      <p style="color:var(--text-muted); font-size:13.5px;">${label}</p>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn btn-primary" id="exam-back">Về trang Bài tập</button>
+      </div>
+    </div>`;
+  document.getElementById('exam-back').addEventListener('click', renderExamHome);
 }
 
 /* =========================================================
